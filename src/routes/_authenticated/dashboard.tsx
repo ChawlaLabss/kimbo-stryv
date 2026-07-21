@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
