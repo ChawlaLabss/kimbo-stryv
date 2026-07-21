@@ -82,6 +82,38 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Ready to STRV today?</p>
       </div>
 
+      {!data.dailyDone ? (
+        <Link
+          to="/daily-checkin"
+          className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-4 hover:border-primary"
+        >
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Bell className="h-5 w-5" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Daily check-in</div>
+            <div className="text-xs text-muted-foreground">Log today's weigh-in to keep your trend sharp</div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-primary" />
+        </Link>
+      ) : (
+        <Link
+          to="/daily-checkin"
+          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 hover:border-primary/50"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Scale className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Today's weigh-in logged ✓</div>
+            <div className="text-xs text-muted-foreground">{data.weightKg ? `${data.weightKg} kg` : "Tap to update"}</div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </Link>
+      )}
+
+
       <div
         className="relative overflow-hidden rounded-2xl border border-border p-5"
         style={{ background: "linear-gradient(135deg, oklch(0.22 0.02 25), oklch(0.18 0.005 260))" }}
