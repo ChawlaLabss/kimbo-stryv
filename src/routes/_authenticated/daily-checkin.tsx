@@ -67,10 +67,6 @@ function DailyCheckIn() {
           { onConflict: "user_id,date" },
         );
       if (error) throw error;
-      await supabase.from("body_measurements").upsert(
-        { user_id: uid, date: today(), weight_kg: w },
-        { onConflict: "user_id,date" },
-      );
       toast.success("Check-in saved");
       navigate({ to: "/dashboard" });
     } catch (err) {
