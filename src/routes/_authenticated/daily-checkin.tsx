@@ -15,9 +15,19 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+const MOODS: { value: number; emoji: string; label: string }[] = [
+  { value: 1, emoji: "😞", label: "Rough" },
+  { value: 2, emoji: "😕", label: "Meh" },
+  { value: 3, emoji: "🙂", label: "Okay" },
+  { value: 4, emoji: "😃", label: "Good" },
+  { value: 5, emoji: "🔥", label: "Great" },
+];
+
 function DailyCheckIn() {
   const navigate = useNavigate();
   const [weight, setWeight] = useState("");
+  const [fasted, setFasted] = useState(true);
+  const [mood, setMood] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [existing, setExisting] = useState(false);
@@ -28,7 +38,7 @@ function DailyCheckIn() {
       const uid = u.user!.id;
       const { data } = await supabase
         .from("daily_checkins")
-        .select("weight_kg, note")
+        .select("weight_kg, note, fasted, mood")
         .eq("user_id", uid)
         .eq("date", today())
         .maybeSingle();
@@ -36,6 +46,8 @@ function DailyCheckIn() {
         setExisting(true);
         if (data.weight_kg != null) setWeight(String(data.weight_kg));
         if (data.note) setNote(data.note);
+        if (typeof data.fasted === "boolean") setFasted(data.fasted);
+        if (data.mood != null) setMood(Number(data.mood));
       } else {
         const { data: m } = await supabase
           .from("body_measurements")
@@ -63,7 +75,7 @@ function DailyCheckIn() {
       const { error } = await supabase
         .from("daily_checkins")
         .upsert(
-          { user_id: uid, date: today(), weight_kg: w, note: note || null },
+          { user_id: uid, date: today(), weight_kg: w, fasted, mood, note: note || null },
           { onConflict: "user_id,date" },
         );
       if (error) throw error;
@@ -81,7 +93,7 @@ function DailyCheckIn() {
       <div>
         <h1 className="font-display text-2xl font-black">Daily check-in</h1>
         <p className="text-sm text-muted-foreground">
-          {existing ? "Update today's weigh-in." : "Log today's weight to track your trend."}
+          {existing ? "Update today's check-in." : "Log today's weigh-in and how you're feeling."}
         </p>
       </div>
 
@@ -96,6 +108,43 @@ function DailyCheckIn() {
           placeholder="e.g. 78.4"
           autoFocus
         />
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => setFasted(true)}
+            className={`h-9 flex-1 rounded-md border text-sm ${fasted ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}
+          >
+            Fasted
+          </button>
+          <button
+            type="button"
+            onClick={() => setFasted(false)}
+            className={`h-9 flex-1 rounded-md border text-sm ${!fasted ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}
+          >
+            Not fasted
+          </button>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Fasted weigh-ins after waking, before eating or drinking, give the most consistent trend.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>How are you feeling today?</Label>
+        <div className="flex gap-2">
+          {MOODS.map((m) => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setMood(m.value)}
+              className={`flex h-16 flex-1 flex-col items-center justify-center gap-1 rounded-md border text-xs ${mood === m.value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}
+              aria-label={m.label}
+            >
+              <span className="text-xl">{m.emoji}</span>
+              <span>{m.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -103,7 +152,7 @@ function DailyCheckIn() {
         <Textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="How are you feeling today?"
+          placeholder="Anything worth remembering about today?"
           rows={3}
         />
       </div>
@@ -111,10 +160,6 @@ function DailyCheckIn() {
       <Button type="submit" disabled={saving} className="h-11 w-full">
         {saving ? "Saving…" : "Save check-in"}
       </Button>
-
-      <p className="text-xs text-muted-foreground">
-        Weigh in at the same time each day for the most consistent trend — ideally after waking, before eating.
-      </p>
     </form>
   );
 }
