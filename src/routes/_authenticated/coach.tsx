@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Settings2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { chatWithCoach } from "@/lib/coach-chat.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { COACH_PERSONAS, getPersona, type CoachPersonaId } from "@/lib/coach-personas";
 
 export const Route = createFileRoute("/_authenticated/coach")({
   component: CoachPage,
@@ -19,6 +20,8 @@ function CoachPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [personaId, setPersonaId] = useState<CoachPersonaId | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const chat = useServerFn(chatWithCoach);
 
@@ -26,6 +29,11 @@ function CoachPage() {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user!.id;
+      const { data: profile } = await supabase.from("profiles").select("coach_persona").eq("id", uid).maybeSingle();
+      const savedPersona = (profile as { coach_persona?: string } | null)?.coach_persona as CoachPersonaId | undefined;
+      setPersonaId(savedPersona ?? null);
+      if (!savedPersona) setShowPicker(true);
+
       let { data: conv } = await supabase.from("ai_conversations").select("id").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (!conv) {
         const { data: newConv } = await supabase.from("ai_conversations").insert({ user_id: uid, title: "Coach chat" }).select().single();
@@ -40,6 +48,16 @@ function CoachPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
+
+  const persona = getPersona(personaId);
+
+  async function selectPersona(id: CoachPersonaId) {
+    setPersonaId(id);
+    setShowPicker(false);
+    const { data: u } = await supabase.auth.getUser();
+    await supabase.from("profiles").update({ coach_persona: id }).eq("id", u.user!.id);
+    toast.success(`Coach set to ${getPersona(id).name}`);
+  }
 
   const suggestions = [
     "What should I train today?",
@@ -66,19 +84,65 @@ function CoachPage() {
     }
   }
 
+  if (showPicker) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h1 className="font-display text-2xl font-black">Pick your coach</h1>
+          <p className="text-sm text-muted-foreground">Choose the personality that gets the best out of you. You can change it anytime.</p>
+        </div>
+        <div className="grid gap-3">
+          {COACH_PERSONAS.map((p) => {
+            const active = personaId === p.id;
+            return (
+              <button
+                key={p.id}
+                onClick={() => selectPersona(p.id)}
+                className={`flex items-start gap-4 rounded-2xl border p-4 text-left transition ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background text-2xl">{p.emoji}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="font-display font-bold">{p.name}</div>
+                    {active && <Check className="h-4 w-4 text-primary" />}
+                  </div>
+                  <div className="text-xs font-medium uppercase tracking-wide text-primary">{p.tagline}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{p.description}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {personaId && (
+          <Button variant="outline" className="w-full" onClick={() => setShowPicker(false)}>Back to chat</Button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-[calc(100vh-140px)] flex-col">
-      <header className="mb-3">
-        <h1 className="font-display text-2xl font-black">AI Coach</h1>
-        <p className="text-xs text-muted-foreground">Grounded in your program, performance, and vetted training literature.</p>
+      <header className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-black">AI Coach</h1>
+          <p className="text-xs text-muted-foreground">Grounded in your program, performance, and vetted training literature.</p>
+        </div>
+        <button
+          onClick={() => setShowPicker(true)}
+          className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs hover:border-primary/50"
+        >
+          <span className="text-base leading-none">{persona.emoji}</span>
+          <span className="font-medium">{persona.name}</span>
+          <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
+        </button>
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border bg-card p-4">
         {messages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10"><Sparkles className="h-6 w-6 text-primary" /></div>
-            <p className="mt-3 text-sm font-medium">Ask me anything about your training.</p>
-            <p className="text-xs text-muted-foreground">Programming, progression, technique, recovery.</p>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-3xl">{persona.emoji}</div>
+            <p className="mt-3 text-sm font-medium">{persona.name} is ready.</p>
+            <p className="text-xs text-muted-foreground">{persona.description}</p>
           </div>
         )}
         {messages.map((m) => (
@@ -93,7 +157,7 @@ function CoachPage() {
             </div>
           </div>
         ))}
-        {sending && <div className="flex justify-start"><div className="rounded-2xl bg-background px-4 py-2 text-sm text-muted-foreground">Coach is thinking…</div></div>}
+        {sending && <div className="flex justify-start"><div className="rounded-2xl bg-background px-4 py-2 text-sm text-muted-foreground">{persona.name} is thinking…</div></div>}
         <div ref={bottomRef} />
       </div>
 
@@ -110,7 +174,7 @@ function CoachPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-          placeholder="Ask your coach…"
+          placeholder={`Ask ${persona.name}…`}
           rows={1}
           className="min-h-11 resize-none"
         />
