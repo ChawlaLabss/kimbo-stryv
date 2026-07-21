@@ -1,0 +1,24 @@
+export type OnboardingInput = {
+  age_range?: string | null;
+  sex?: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  units?: string | null;
+  goal?: string | null;
+  target_weight_kg?: number | null;
+  timeline_weeks?: number | null;
+  experience?: string | null;
+  days_per_week?: number | null;
+  session_minutes?: number | null;
+  location?: string | null;
+  equipment?: string[] | null;
+  split_preference?: string | null;
+  priority_muscles?: string[] | null;
+  injuries?: string | null;
+  avoid_exercises?: string | null;
+  sleep_hours?: number | null;
+  stress_level?: number | null;
+  activity_level?: string | null;
+  dietary_preferences?: string | null;
+  allergies?: string | null;
+};
