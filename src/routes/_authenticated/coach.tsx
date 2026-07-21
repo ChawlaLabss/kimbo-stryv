@@ -55,7 +55,6 @@ function CoachPage() {
     setPersonaId(id);
     setShowPicker(false);
     const { data: u } = await supabase.auth.getUser();
-    // @ts-expect-error coach_persona is a new column not yet in generated types
     await supabase.from("profiles").update({ coach_persona: id }).eq("id", u.user!.id);
     toast.success(`Coach set to ${getPersona(id).name}`);
   }
