@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { getPersona } from "./coach-personas";
 
 const Input = z.object({
   conversationId: z.string().uuid(),
