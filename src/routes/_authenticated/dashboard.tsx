@@ -30,12 +30,14 @@ function Dashboard() {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user!.id;
 
-      const [profile, onb, program, sessions, meas] = await Promise.all([
+      const today = new Date().toISOString().slice(0, 10);
+      const [profile, onb, program, sessions, meas, daily] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("id", uid).maybeSingle(),
         supabase.from("onboarding_responses").select("completed, days_per_week, weight_kg").eq("user_id", uid).maybeSingle(),
         supabase.from("training_programs").select("*, program_days(*, program_exercises(count))").eq("user_id", uid).eq("active", true).maybeSingle(),
         supabase.from("workout_sessions").select("id, date, completed").eq("user_id", uid).eq("completed", true).gte("date", weekStart()),
         supabase.from("body_measurements").select("weight_kg, date").eq("user_id", uid).order("date", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("daily_checkins").select("id, weight_kg").eq("user_id", uid).eq("date", today).maybeSingle(),
       ]);
 
       if (!onb.data?.completed) {
@@ -54,7 +56,8 @@ function Dashboard() {
         todayDay: todayDay ? { id: todayDay.id, name: todayDay.name, muscle_groups: todayDay.muscle_groups ?? [], exercise_count: todayDay.program_exercises?.[0]?.count ?? 0 } : null,
         weekProgress: { done: sessions.data?.length ?? 0, planned: onb.data?.days_per_week ?? 4 },
         streak: sessions.data?.length ?? 0,
-        weightKg: meas.data?.weight_kg ?? onb.data?.weight_kg ?? null,
+        weightKg: daily.data?.weight_kg ?? meas.data?.weight_kg ?? onb.data?.weight_kg ?? null,
+        dailyDone: !!daily.data,
       });
       setLoading(false);
     })();
