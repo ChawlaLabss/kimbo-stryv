@@ -17,6 +17,7 @@ import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDailyCheckinRouteImport } from './routes/_authenticated/daily-checkin'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedAdminKnowledgeRouteImport } from './routes/_authenticated/admin/knowledge'
@@ -60,6 +61,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDailyCheckinRoute =
+  AuthenticatedDailyCheckinRouteImport.update({
+    id: '/daily-checkin',
+    path: '/daily-checkin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -82,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/daily-checkin': typeof AuthenticatedDailyCheckinRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -94,6 +102,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/daily-checkin': typeof AuthenticatedDailyCheckinRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -108,6 +117,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
+  '/_authenticated/daily-checkin': typeof AuthenticatedDailyCheckinRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkin'
     | '/coach'
+    | '/daily-checkin'
     | '/dashboard'
     | '/onboarding'
     | '/profile'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkin'
     | '/coach'
+    | '/daily-checkin'
     | '/dashboard'
     | '/onboarding'
     | '/profile'
@@ -147,6 +159,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/checkin'
     | '/_authenticated/coach'
+    | '/_authenticated/daily-checkin'
     | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/daily-checkin': {
+      id: '/_authenticated/daily-checkin'
+      path: '/daily-checkin'
+      fullPath: '/daily-checkin'
+      preLoaderRoute: typeof AuthenticatedDailyCheckinRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -246,6 +266,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
+  AuthenticatedDailyCheckinRoute: typeof AuthenticatedDailyCheckinRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -257,6 +278,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
+  AuthenticatedDailyCheckinRoute: AuthenticatedDailyCheckinRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,

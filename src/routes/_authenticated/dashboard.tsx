@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -17,6 +17,7 @@ type DashboardData = {
   weekProgress: { done: number; planned: number };
   streak: number;
   weightKg: number | null;
+  dailyDone: boolean;
 };
 
 function Dashboard() {
@@ -29,12 +30,14 @@ function Dashboard() {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user!.id;
 
-      const [profile, onb, program, sessions, meas] = await Promise.all([
+      const today = new Date().toISOString().slice(0, 10);
+      const [profile, onb, program, sessions, meas, daily] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("id", uid).maybeSingle(),
         supabase.from("onboarding_responses").select("completed, days_per_week, weight_kg").eq("user_id", uid).maybeSingle(),
         supabase.from("training_programs").select("*, program_days(*, program_exercises(count))").eq("user_id", uid).eq("active", true).maybeSingle(),
         supabase.from("workout_sessions").select("id, date, completed").eq("user_id", uid).eq("completed", true).gte("date", weekStart()),
         supabase.from("body_measurements").select("weight_kg, date").eq("user_id", uid).order("date", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("daily_checkins").select("id, weight_kg").eq("user_id", uid).eq("date", today).maybeSingle(),
       ]);
 
       if (!onb.data?.completed) {
@@ -53,7 +56,8 @@ function Dashboard() {
         todayDay: todayDay ? { id: todayDay.id, name: todayDay.name, muscle_groups: todayDay.muscle_groups ?? [], exercise_count: todayDay.program_exercises?.[0]?.count ?? 0 } : null,
         weekProgress: { done: sessions.data?.length ?? 0, planned: onb.data?.days_per_week ?? 4 },
         streak: sessions.data?.length ?? 0,
-        weightKg: meas.data?.weight_kg ?? onb.data?.weight_kg ?? null,
+        weightKg: daily.data?.weight_kg ?? meas.data?.weight_kg ?? onb.data?.weight_kg ?? null,
+        dailyDone: !!daily.data,
       });
       setLoading(false);
     })();
@@ -77,6 +81,38 @@ function Dashboard() {
         <h1 className="font-display text-3xl font-black">{data.name} <span className="text-primary">💪</span></h1>
         <p className="text-sm text-muted-foreground">Ready to STRV today?</p>
       </div>
+
+      {!data.dailyDone ? (
+        <Link
+          to="/daily-checkin"
+          className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-4 hover:border-primary"
+        >
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Bell className="h-5 w-5" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Daily check-in</div>
+            <div className="text-xs text-muted-foreground">Log today's weigh-in to keep your trend sharp</div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-primary" />
+        </Link>
+      ) : (
+        <Link
+          to="/daily-checkin"
+          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 hover:border-primary/50"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Scale className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Today's weigh-in logged ✓</div>
+            <div className="text-xs text-muted-foreground">{data.weightKg ? `${data.weightKg} kg` : "Tap to update"}</div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </Link>
+      )}
+
 
       <div
         className="relative overflow-hidden rounded-2xl border border-border p-5"
