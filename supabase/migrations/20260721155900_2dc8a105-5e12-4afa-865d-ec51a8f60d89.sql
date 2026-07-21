@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS coach_persona TEXT NOT NULL DEFAULT 'mentor';
