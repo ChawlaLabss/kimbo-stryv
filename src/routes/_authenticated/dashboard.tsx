@@ -17,6 +17,7 @@ type DashboardData = {
   weekProgress: { done: number; planned: number };
   streak: number;
   weightKg: number | null;
+  dailyDone: boolean;
 };
 
 function Dashboard() {
