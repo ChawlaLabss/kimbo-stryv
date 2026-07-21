@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,12 +12,13 @@ export const Route = createFileRoute("/_authenticated/workout")({
   component: WorkoutPage,
 });
 
-type Exercise = {
+type ProgEx = {
   id: string;
+  exercise_id: string | null;
   exercise_name: string;
   order_index: number;
   sets: number;
-  rep_range: string;
+  rep_range: string | null;
   target_rir: number | null;
   rest_seconds: number | null;
   notes: string | null;
@@ -31,25 +31,25 @@ type SetLog = {
   rir: string;
   is_warmup: boolean;
   completed: boolean;
-  notes?: string;
 };
 
-type ExerciseState = {
-  ex: Exercise;
+type ExState = {
+  ex: ProgEx;
   sets: SetLog[];
   previous: { weight: number | null; reps: number | null }[];
 };
 
 function WorkoutPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<ExerciseState[]>([]);
+  const [state, setState] = useState<ExState[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [dayName, setDayName] = useState("");
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [restLeft, setRestLeft] = useState(0);
   const [finishing, setFinishing] = useState(false);
-  const [feedback, setFeedback] = useState<{ open: boolean; difficulty: number; energy: number; performance: number; soreness: number }>({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
+  const [fb, setFb] = useState({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -61,6 +61,7 @@ function WorkoutPage() {
   async function bootstrap() {
     const { data: u } = await supabase.auth.getUser();
     const uid = u.user!.id;
+    setUserId(uid);
 
     const { data: program } = await supabase
       .from("training_programs")
@@ -72,13 +73,13 @@ function WorkoutPage() {
       navigate({ to: "/onboarding" });
       return;
     }
-    const daysRaw = (program.program_days ?? []) as Array<{ id: string; day_index: number; name: string; is_rest: boolean; program_exercises: Exercise[] }>;
+    const daysRaw = (program.program_days ?? []) as Array<{ id: string; day_index: number; name: string; is_rest: boolean; program_exercises: ProgEx[] }>;
     const days = [...daysRaw].sort((a, b) => a.day_index - b.day_index).filter((d) => !d.is_rest);
-    const todayIdx = ((new Date().getDay() + 6) % 7) % Math.max(1, days.length);
-    const day = days[todayIdx] ?? days[0];
+    if (days.length === 0) { setLoading(false); return; }
+    const todayIdx = ((new Date().getDay() + 6) % 7) % days.length;
+    const day = days[todayIdx];
     setDayName(day.name);
 
-    // Find or create today's session
     const today = new Date().toISOString().slice(0, 10);
     let { data: session } = await supabase
       .from("workout_sessions")
@@ -96,48 +97,45 @@ function WorkoutPage() {
 
     const exList = [...(day.program_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
 
-    // Load prior session logged sets for each exercise (last completed session before today)
+    // Prior session data: last completed session's sets for each exercise (by exercise_name)
     const prev = await Promise.all(
       exList.map(async (ex) => {
         const { data } = await supabase
           .from("logged_sets")
-          .select("weight, reps, set_index, workout_sessions!inner(user_id, date, completed)")
-          .eq("program_exercise_id", ex.id)
+          .select("weight, reps, set_index, session_id, workout_sessions!inner(user_id, date, completed)")
+          .eq("exercise_name", ex.exercise_name)
           .eq("workout_sessions.user_id", uid)
           .eq("workout_sessions.completed", true)
           .lt("workout_sessions.date", today)
           .order("set_index");
-        const rows = (data ?? []) as Array<{ weight: number | null; reps: number | null; set_index: number }>;
-        // dedupe latest per set_index
+        const rows = (data ?? []) as unknown as Array<{ weight: number | null; reps: number | null; set_index: number }>;
         const bySet = new Map<number, { weight: number | null; reps: number | null }>();
         rows.forEach((r) => bySet.set(r.set_index, { weight: r.weight, reps: r.reps }));
         return Array.from({ length: ex.sets }, (_, i) => bySet.get(i) ?? { weight: null, reps: null });
       }),
     );
 
-    // Load already-logged sets for this session
+    // Existing logged sets for this session
     const { data: existing } = await supabase
-      .from("logged_sets")
-      .select("*")
-      .eq("session_id", session!.id);
-    const existingByEx = new Map<string, Array<{ set_index: number; weight: number | null; reps: number | null; rir: number | null; is_warmup: boolean; completed: boolean }>>();
+      .from("logged_sets").select("*").eq("session_id", session!.id);
+    const byEx = new Map<string, typeof existing>();
     (existing ?? []).forEach((r) => {
-      const list = existingByEx.get(r.program_exercise_id as string) ?? [];
-      list.push(r as never);
-      existingByEx.set(r.program_exercise_id as string, list);
+      const list = byEx.get(r.exercise_name) ?? [];
+      list.push(r);
+      byEx.set(r.exercise_name, list);
     });
 
     setState(exList.map((ex, i) => {
-      const exist = existingByEx.get(ex.id) ?? [];
+      const rows = (byEx.get(ex.exercise_name) ?? []) as Array<{ set_index: number; weight: number | null; reps: number | null; rir: number | null; is_warmup: boolean }>;
       const sets: SetLog[] = Array.from({ length: ex.sets }, (_, k) => {
-        const found = exist.find((r) => r.set_index === k);
+        const found = rows.find((r) => r.set_index === k);
         return {
           set_index: k,
           weight: found?.weight?.toString() ?? "",
           reps: found?.reps?.toString() ?? "",
           rir: found?.rir?.toString() ?? "",
           is_warmup: found?.is_warmup ?? false,
-          completed: found?.completed ?? false,
+          completed: found != null,
         };
       });
       return { ex, sets, previous: prev[i] };
@@ -157,29 +155,44 @@ function WorkoutPage() {
   }
 
   async function toggleSetComplete(exIdx: number, setIdx: number) {
+    if (!sessionId || !userId) return;
     const es = state[exIdx];
     const st = es.sets[setIdx];
     const nextCompleted = !st.completed;
-    const payload = {
-      session_id: sessionId!,
-      program_exercise_id: es.ex.id,
-      set_index: setIdx,
-      weight: st.weight ? Number(st.weight) : null,
-      reps: st.reps ? Number(st.reps) : null,
-      rir: st.rir ? Number(st.rir) : null,
-      is_warmup: st.is_warmup,
-      completed: nextCompleted,
-    };
-    const { error } = await supabase
-      .from("logged_sets")
-      .upsert(payload, { onConflict: "session_id,program_exercise_id,set_index" });
-    if (error) { toast.error(error.message); return; }
+
+    if (nextCompleted) {
+      // Insert or replace: delete existing at (session, exercise_name, set_index) then insert
+      await supabase.from("logged_sets")
+        .delete()
+        .eq("session_id", sessionId)
+        .eq("exercise_name", es.ex.exercise_name)
+        .eq("set_index", setIdx);
+      const { error } = await supabase.from("logged_sets").insert({
+        session_id: sessionId,
+        user_id: userId,
+        exercise_id: es.ex.exercise_id,
+        exercise_name: es.ex.exercise_name,
+        set_index: setIdx,
+        weight: st.weight ? Number(st.weight) : null,
+        reps: st.reps ? Number(st.reps) : null,
+        rir: st.rir ? Number(st.rir) : null,
+        is_warmup: st.is_warmup,
+      });
+      if (error) { toast.error(error.message); return; }
+      if (es.ex.rest_seconds) startRest(es.ex.rest_seconds);
+    } else {
+      await supabase.from("logged_sets")
+        .delete()
+        .eq("session_id", sessionId)
+        .eq("exercise_name", es.ex.exercise_name)
+        .eq("set_index", setIdx);
+    }
+
     setState((prev) => {
       const copy = [...prev];
       copy[exIdx] = { ...copy[exIdx], sets: copy[exIdx].sets.map((s, i) => i === setIdx ? { ...s, completed: nextCompleted } : s) };
       return copy;
     });
-    if (nextCompleted && es.ex.rest_seconds) startRest(es.ex.rest_seconds);
   }
 
   function updateSet(exIdx: number, setIdx: number, patch: Partial<SetLog>) {
@@ -199,29 +212,30 @@ function WorkoutPage() {
     });
   }
 
-  async function reportPain(exIdx: number) {
-    const reason = window.prompt("Describe what you're feeling. If it's sharp pain, stop this exercise and consider seeing a physio.");
+  function reportPain(exIdx: number) {
+    const reason = window.prompt("Describe what you're feeling. Sharp pain → stop this exercise and consider seeing a physio.");
     if (!reason) return;
-    await supabase.from("logged_sets").upsert({
-      session_id: sessionId!,
-      program_exercise_id: state[exIdx].ex.id,
-      set_index: 999,
-      is_warmup: false, completed: false,
-      notes: `PAIN: ${reason}`,
-    }, { onConflict: "session_id,program_exercise_id,set_index" });
-    toast.warning("Stop this exercise. Consider swapping it or seeing a qualified physio for sharp pain.");
+    setState((prev) => {
+      const copy = [...prev];
+      copy[exIdx] = { ...copy[exIdx], ex: { ...copy[exIdx].ex, notes: [copy[exIdx].ex.notes, `⚠️ Pain reported: ${reason}`].filter(Boolean).join(" · ") } };
+      return copy;
+    });
+    toast.warning("Consider stopping this exercise. Sharp pain → see a qualified physio.");
   }
 
-  async function replaceExercise(exIdx: number) {
+  function replaceExercise(exIdx: number) {
     const alt = window.prompt(`Replace "${state[exIdx].ex.exercise_name}" with:`);
     if (!alt) return;
     const reason = window.prompt("Reason for swap? (equipment, discomfort, preference)") ?? "";
     setState((prev) => {
       const copy = [...prev];
-      copy[exIdx] = { ...copy[exIdx], ex: { ...copy[exIdx].ex, exercise_name: alt, notes: [copy[exIdx].ex.notes, `Swapped: ${reason}`].filter(Boolean).join(" · ") } };
+      copy[exIdx] = {
+        ...copy[exIdx],
+        ex: { ...copy[exIdx].ex, exercise_name: alt, notes: [copy[exIdx].ex.notes, `Swapped: ${reason}`].filter(Boolean).join(" · ") },
+        sets: copy[exIdx].sets.map((s) => ({ ...s, completed: false })),
+      };
       return copy;
     });
-    toast.success("Swapped. Log as usual.");
   }
 
   async function finishWorkout() {
@@ -229,10 +243,11 @@ function WorkoutPage() {
     setFinishing(true);
     const { error } = await supabase.from("workout_sessions").update({
       completed: true,
-      difficulty_rating: feedback.difficulty,
-      energy_rating: feedback.energy,
-      performance_rating: feedback.performance,
-      soreness_rating: feedback.soreness,
+      difficulty: fb.difficulty,
+      energy: fb.energy,
+      performance: fb.performance,
+      soreness_notes: `Soreness: ${fb.soreness}/5`,
+      ended_at: new Date().toISOString(),
     }).eq("id", sessionId);
     setFinishing(false);
     if (error) { toast.error(error.message); return; }
@@ -274,7 +289,7 @@ function WorkoutPage() {
           <div>
             <h2 className="font-display text-xl font-bold">{es.ex.exercise_name}</h2>
             <p className="text-xs text-muted-foreground">
-              {es.ex.sets} × {es.ex.rep_range} @ RIR {es.ex.target_rir ?? "-"} · Rest {es.ex.rest_seconds}s
+              {es.ex.sets} × {es.ex.rep_range ?? "-"} @ RIR {es.ex.target_rir ?? "-"} · Rest {es.ex.rest_seconds ?? 0}s
             </p>
             {es.ex.notes && <p className="mt-1 text-xs text-muted-foreground">{es.ex.notes}</p>}
           </div>
@@ -303,8 +318,8 @@ function WorkoutPage() {
                 >
                   {s.is_warmup ? "W" : i + 1}
                 </button>
-                <Input inputMode="decimal" placeholder={prev?.weight ? `${prev.weight}` : "kg"} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
-                <Input inputMode="numeric" placeholder={prev?.reps ? `${prev.reps}` : "reps"} value={s.reps} onChange={(e) => updateSet(current, i, { reps: e.target.value })} className="h-9" />
+                <Input inputMode="decimal" placeholder={prev?.weight != null ? `${prev.weight}` : "kg"} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
+                <Input inputMode="numeric" placeholder={prev?.reps != null ? `${prev.reps}` : "reps"} value={s.reps} onChange={(e) => updateSet(current, i, { reps: e.target.value })} className="h-9" />
                 <Input inputMode="numeric" placeholder="-" value={s.rir} onChange={(e) => updateSet(current, i, { rir: e.target.value })} className="h-9" />
                 <button
                   onClick={() => toggleSetComplete(current, i)}
@@ -328,11 +343,11 @@ function WorkoutPage() {
         {current < state.length - 1 ? (
           <Button onClick={() => setCurrent((c) => c + 1)}>Next <ChevronRight className="h-4 w-4" /></Button>
         ) : (
-          <Button onClick={() => setFeedback({ ...feedback, open: true })}>Finish workout</Button>
+          <Button onClick={() => setFb({ ...fb, open: true })}>Finish workout</Button>
         )}
       </div>
 
-      {feedback.open && (
+      {fb.open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
           <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5">
             <h3 className="font-display text-xl font-bold">How did it feel?</h3>
@@ -340,18 +355,18 @@ function WorkoutPage() {
             <div className="mt-4 space-y-3">
               {(["difficulty","energy","performance","soreness"] as const).map((k) => (
                 <div key={k}>
-                  <div className="mb-1 flex justify-between text-xs"><Label className="capitalize">{k}</Label><span className="text-muted-foreground">{feedback[k]}</span></div>
+                  <div className="mb-1 flex justify-between text-xs"><Label className="capitalize">{k}</Label><span className="text-muted-foreground">{fb[k]}</span></div>
                   <div className="flex gap-1">
                     {[1,2,3,4,5].map((n) => (
-                      <button key={n} onClick={() => setFeedback({ ...feedback, [k]: n })}
-                        className={`h-9 flex-1 rounded-md border text-sm ${feedback[k] === n ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{n}</button>
+                      <button key={n} onClick={() => setFb({ ...fb, [k]: n })}
+                        className={`h-9 flex-1 rounded-md border text-sm ${fb[k] === n ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{n}</button>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
             <div className="mt-5 flex gap-2">
-              <Button variant="ghost" onClick={() => setFeedback({ ...feedback, open: false })} className="flex-1">Cancel</Button>
+              <Button variant="ghost" onClick={() => setFb({ ...fb, open: false })} className="flex-1">Cancel</Button>
               <Button onClick={finishWorkout} disabled={finishing} className="flex-1">{finishing ? "Saving…" : "Complete"}</Button>
             </div>
           </div>

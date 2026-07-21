@@ -12,24 +12,24 @@ export const Route = createFileRoute("/_authenticated/checkin")({
 });
 
 type F = {
-  weight_kg: string;
+  body_weight_kg: string;
   workouts_completed: string;
-  strength_change: string;
+  workouts_planned: string;
   sleep_quality: string;
   stress_level: string;
   soreness: string;
   motivation: string;
   energy: string;
   pain_notes: string;
-  perceived_recovery: string;
+  recovery: string;
   notes: string;
 };
 
 const empty: F = {
-  weight_kg: "", workouts_completed: "", strength_change: "3",
+  body_weight_kg: "", workouts_completed: "", workouts_planned: "4",
   sleep_quality: "3", stress_level: "3", soreness: "3",
   motivation: "3", energy: "3", pain_notes: "",
-  perceived_recovery: "3", notes: "",
+  recovery: "3", notes: "",
 };
 
 function CheckIn() {
@@ -42,21 +42,20 @@ function CheckIn() {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       const { data: m } = await supabase.from("body_measurements").select("weight_kg").eq("user_id", u.user!.id).order("date", { ascending: false }).limit(1).maybeSingle();
-      if (m?.weight_kg) setF((p) => ({ ...p, weight_kg: `${m.weight_kg}` }));
+      if (m?.weight_kg) setF((p) => ({ ...p, body_weight_kg: `${m.weight_kg}` }));
     })();
   }, []);
 
   function generateRecommendation(): string {
     const soreness = Number(f.soreness);
     const energy = Number(f.energy);
-    const strength = Number(f.strength_change);
-    const recovery = Number(f.perceived_recovery);
+    const recovery = Number(f.recovery);
     const pain = f.pain_notes.trim().length > 0;
 
     if (pain) return "PAIN reported — pause the affected movement, substitute with a pain-free alternative, and consider seeing a qualified physio before pushing volume.";
     if (soreness >= 4 && recovery <= 2) return "Recovery low, soreness high — reduce volume by ~20% next week and prioritize sleep. Keep intensity, cut a set from each exercise.";
     if (energy <= 2 && recovery <= 2) return "Fatigue trending up — consider a light deload week (2/3 sets @ RIR 3-4) before pushing again.";
-    if (strength >= 4 && energy >= 4) return "You're crushing it — add a small load progression (2.5–5kg upper, 5–10kg lower) or 1 rep across the top of your rep range.";
+    if (energy >= 4 && recovery >= 4) return "You're crushing it — add a small load progression (2.5–5kg upper, 5–10kg lower) or 1 rep across the top of your rep range.";
     return "Maintain current volume and intensity. Aim for small load or rep progression where you're hitting the top of your rep range at target RIR.";
   }
 
@@ -70,24 +69,24 @@ function CheckIn() {
       const { error } = await supabase.from("weekly_checkins").insert({
         user_id: uid,
         week_start: weekStart(),
-        weight_kg: f.weight_kg ? Number(f.weight_kg) : null,
+        body_weight_kg: f.body_weight_kg ? Number(f.body_weight_kg) : null,
         workouts_completed: f.workouts_completed ? Number(f.workouts_completed) : null,
-        strength_change: Number(f.strength_change),
+        workouts_planned: f.workouts_planned ? Number(f.workouts_planned) : null,
         sleep_quality: Number(f.sleep_quality),
         stress_level: Number(f.stress_level),
         soreness: Number(f.soreness),
         motivation: Number(f.motivation),
         energy: Number(f.energy),
         pain_notes: f.pain_notes || null,
-        perceived_recovery: Number(f.perceived_recovery),
+        recovery: Number(f.recovery),
         notes: f.notes || null,
         recommendation: rec,
       });
       if (error) throw error;
-      if (f.weight_kg) {
+      if (f.body_weight_kg) {
         await supabase.from("body_measurements").insert({
           user_id: uid, date: new Date().toISOString().slice(0, 10),
-          weight_kg: Number(f.weight_kg),
+          weight_kg: Number(f.body_weight_kg),
         });
       }
       setRecommendation(rec);
@@ -122,18 +121,17 @@ function CheckIn() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Body weight (kg)"><Input type="number" step={0.1} value={f.weight_kg} onChange={(e) => setF({ ...f, weight_kg: e.target.value })} /></Field>
+        <Field label="Body weight (kg)"><Input type="number" step={0.1} value={f.body_weight_kg} onChange={(e) => setF({ ...f, body_weight_kg: e.target.value })} /></Field>
         <Field label="Workouts completed"><Input type="number" value={f.workouts_completed} onChange={(e) => setF({ ...f, workouts_completed: e.target.value })} /></Field>
       </div>
 
       {([
-        ["strength_change","Strength change"],
         ["sleep_quality","Sleep quality"],
         ["stress_level","Stress level"],
         ["soreness","Soreness"],
         ["motivation","Motivation"],
         ["energy","Energy"],
-        ["perceived_recovery","Perceived recovery"],
+        ["recovery","Perceived recovery"],
       ] as const).map(([k, label]) => (
         <Slider1to5 key={k} label={label} value={f[k]} onChange={(v) => setF({ ...f, [k]: v })} />
       ))}

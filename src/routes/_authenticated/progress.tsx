@@ -15,7 +15,7 @@ function ProgressPage() {
   const [weight, setWeight] = useState<Point[]>([]);
   const [volume, setVolume] = useState<Point[]>([]);
   const [prs, setPrs] = useState<PR[]>([]);
-  const [adherence, setAdherence] = useState({ done: 0, planned: 0 });
+  const [adherence, setAdherence] = useState({ done: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,30 +23,25 @@ function ProgressPage() {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user!.id;
 
-      const [meas, sessions, checkins] = await Promise.all([
+      const [meas, sessions] = await Promise.all([
         supabase.from("body_measurements").select("date, weight_kg").eq("user_id", uid).order("date"),
-        supabase.from("workout_sessions").select("id, date, completed, logged_sets(weight, reps, program_exercise_id, program_exercises(exercise_name))").eq("user_id", uid).order("date"),
-        supabase.from("weekly_checkins").select("workouts_completed").eq("user_id", uid).order("week_start", { ascending: false }).limit(4),
+        supabase.from("workout_sessions").select("id, date, completed, logged_sets(weight, reps, exercise_name)").eq("user_id", uid).order("date"),
       ]);
 
       setWeight((meas.data ?? []).filter((r) => r.weight_kg != null).map((r) => ({ date: r.date, value: Number(r.weight_kg) })));
 
-      // Volume per session + PR tracking
       const volumePoints: Point[] = [];
       const bestByExercise = new Map<string, PR>();
       (sessions.data ?? []).forEach((s) => {
         if (!s.completed) return;
-        const sets = (s.logged_sets ?? []) as Array<{ weight: number | null; reps: number | null; program_exercises: { exercise_name: string } | null }>;
+        const sets = (s.logged_sets ?? []) as Array<{ weight: number | null; reps: number | null; exercise_name: string }>;
         let vol = 0;
         sets.forEach((set) => {
           if (set.weight != null && set.reps != null) {
             vol += set.weight * set.reps;
-            const name = set.program_exercises?.exercise_name;
-            if (name) {
-              const prev = bestByExercise.get(name);
-              if (!prev || set.weight > prev.weight) {
-                bestByExercise.set(name, { exercise_name: name, weight: set.weight, reps: set.reps, date: s.date });
-              }
+            const prev = bestByExercise.get(set.exercise_name);
+            if (!prev || set.weight > prev.weight) {
+              bestByExercise.set(set.exercise_name, { exercise_name: set.exercise_name, weight: set.weight, reps: set.reps, date: s.date });
             }
           }
         });
@@ -54,10 +49,7 @@ function ProgressPage() {
       });
       setVolume(volumePoints);
       setPrs(Array.from(bestByExercise.values()).slice(0, 6));
-
-      const doneCount = (sessions.data ?? []).filter((s) => s.completed).length;
-      const plannedCount = (checkins.data ?? []).reduce((a: number, c) => a + (c.workouts_completed ?? 0), 0);
-      setAdherence({ done: doneCount, planned: Math.max(plannedCount, doneCount) });
+      setAdherence({ done: (sessions.data ?? []).filter((s) => s.completed).length });
 
       setLoading(false);
     })();
@@ -72,11 +64,11 @@ function ProgressPage() {
       <div className="grid grid-cols-3 gap-2">
         <StatCard icon={Trophy} label="PRs" value={prs.length} />
         <StatCard icon={Dumbbell} label="Sessions" value={adherence.done} />
-        <StatCard icon={TrendingUp} label="Weeks logged" value={weight.length} />
+        <StatCard icon={TrendingUp} label="Weight logs" value={weight.length} />
       </div>
 
       <Card title="Body weight">
-        {weight.length < 2 ? <Empty text="Log measurements in weekly check-in." /> : (
+        {weight.length < 2 ? <Empty text="Log measurements in the weekly check-in." /> : (
           <ChartWrap>
             <LineChart data={weight}>
               <CartesianGrid stroke="oklch(0.24 0.005 260)" vertical={false} />
