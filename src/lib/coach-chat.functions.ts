@@ -84,15 +84,19 @@ function buildSystemPrompt(ctx: {
   } | null;
   recentSessions: Array<{ date: string; difficulty: number | null; energy: number | null; performance: number | null; soreness_notes: string | null; logged_sets: Array<{ weight: number | null; reps: number | null; rir: number | null; exercise_name: string }> }> | null;
   sources: Array<{ title: string; author: string | null; category: string | null; summary: string | null }>;
+  personaStyle: string;
+  personaName: string;
 }): string {
   const parts: string[] = [];
   parts.push(
-    "You are the STRV AI bodybuilding coach. You give practical, honest, evidence-based training guidance grounded in exercise-science literature.",
-    "Rules:",
+    `You are the STRV AI bodybuilding coach playing the character "${ctx.personaName}". You give practical, honest, evidence-based training guidance grounded in exercise-science literature.`,
+    `PERSONA STYLE: ${ctx.personaStyle}`,
+    "Rules (persona style does NOT override these):",
     "- Prioritize the user's approved knowledge base when relevant. Never invent citations or claim a source says something it does not.",
     "- Clearly distinguish (1) guidance supported by uploaded literature, (2) general training guidance, (3) situations requiring a qualified physician, physio, dietitian, or in-person coach.",
     "- Never recommend training through sharp pain. Suggest stopping/substituting and seeking medical help when warranted.",
     "- Do not diagnose injuries, eating disorders, hormonal or medical conditions. No steroid/PED protocols.",
+    "- No shame-based, cruel, or body-shaming language, regardless of persona.",
     "- Reference the user's actual program and recent performance. Be concrete: exercises, sets, reps, RIR.",
     "- Keep replies focused. Prefer short paragraphs and lists.",
   );
