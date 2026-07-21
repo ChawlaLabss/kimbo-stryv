@@ -121,6 +121,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          updated_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           created_at: string
@@ -530,55 +560,82 @@ export type Database = {
       }
       weekly_checkins: {
         Row: {
+          biggest_challenge: string | null
+          biggest_win: string | null
           body_weight_kg: number | null
           created_at: string
+          digestion: number | null
           energy: number | null
+          hunger: number | null
           id: string
+          meal_accuracy: number | null
           motivation: number | null
           notes: string | null
           pain_notes: string | null
+          photo_back_url: string | null
+          photo_front_url: string | null
           recommendation: string | null
           recovery: number | null
           sleep_quality: number | null
           soreness: number | null
+          steps_completed: number | null
           stress_level: number | null
           user_id: string
+          water_accuracy: number | null
           week_start: string
           workouts_completed: number | null
           workouts_planned: number | null
         }
         Insert: {
+          biggest_challenge?: string | null
+          biggest_win?: string | null
           body_weight_kg?: number | null
           created_at?: string
+          digestion?: number | null
           energy?: number | null
+          hunger?: number | null
           id?: string
+          meal_accuracy?: number | null
           motivation?: number | null
           notes?: string | null
           pain_notes?: string | null
+          photo_back_url?: string | null
+          photo_front_url?: string | null
           recommendation?: string | null
           recovery?: number | null
           sleep_quality?: number | null
           soreness?: number | null
+          steps_completed?: number | null
           stress_level?: number | null
           user_id: string
+          water_accuracy?: number | null
           week_start: string
           workouts_completed?: number | null
           workouts_planned?: number | null
         }
         Update: {
+          biggest_challenge?: string | null
+          biggest_win?: string | null
           body_weight_kg?: number | null
           created_at?: string
+          digestion?: number | null
           energy?: number | null
+          hunger?: number | null
           id?: string
+          meal_accuracy?: number | null
           motivation?: number | null
           notes?: string | null
           pain_notes?: string | null
+          photo_back_url?: string | null
+          photo_front_url?: string | null
           recommendation?: string | null
           recovery?: number | null
           sleep_quality?: number | null
           soreness?: number | null
+          steps_completed?: number | null
           stress_level?: number | null
           user_id?: string
+          water_accuracy?: number | null
           week_start?: string
           workouts_completed?: number | null
           workouts_planned?: number | null
