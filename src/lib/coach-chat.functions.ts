@@ -19,19 +19,24 @@ export const chatWithCoach = createServerFn({ method: "POST" })
       conversation_id: conversationId, user_id: userId, role: "user", content: message,
     });
 
-    const [onb, program, recent, sources, history] = await Promise.all([
+    const [onb, program, recent, sources, history, profile] = await Promise.all([
       supabase.from("onboarding_responses").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("training_programs").select("name, split, days_per_week, goal, notes, program_days(name, muscle_groups, program_exercises(exercise_name, sets, rep_range, target_rir))").eq("user_id", userId).eq("active", true).maybeSingle(),
       supabase.from("workout_sessions").select("date, difficulty, energy, performance, soreness_notes, logged_sets(weight, reps, rir, exercise_name)").eq("user_id", userId).eq("completed", true).order("date", { ascending: false }).limit(3),
       supabase.from("knowledge_sources").select("title, author, category, summary").eq("active", true).limit(6),
       supabase.from("ai_messages").select("role, content").eq("conversation_id", conversationId).order("created_at").limit(20),
+      supabase.from("profiles").select("coach_persona").eq("id", userId).maybeSingle(),
     ]);
+
+    const persona = getPersona((profile.data as { coach_persona?: string } | null)?.coach_persona);
 
     const systemContext = buildSystemPrompt({
       onboarding: onb.data,
       program: program.data,
       recentSessions: recent.data,
       sources: sources.data ?? [],
+      personaStyle: persona.style,
+      personaName: persona.name,
     });
 
     const messages = [
