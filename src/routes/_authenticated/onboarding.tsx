@@ -394,7 +394,7 @@ function ChipRadio({ value, label }: { value: string; label: string }) {
   return (
     <label
       htmlFor={`r-${value}`}
-      className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm capitalize has-[input:checked]:border-primary has-[input:checked]:bg-primary/10"
+      className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm capitalize transition-colors hover:border-primary/50 has-[button[data-state=checked]]:border-primary has-[button[data-state=checked]]:bg-primary/15 has-[button[data-state=checked]]:text-primary has-[button[data-state=checked]]:font-semibold"
     >
       <RadioGroupItem value={value} id={`r-${value}`} className="sr-only" />
       {label}
