@@ -190,6 +190,51 @@ export type Database = {
         }
         Relationships: []
       }
+      food_logs: {
+        Row: {
+          calories: number
+          carbs_g: number
+          created_at: string
+          date: string
+          fat_g: number
+          id: string
+          meal_type: string
+          name: string
+          notes: string | null
+          protein_g: number
+          servings: number
+          user_id: string
+        }
+        Insert: {
+          calories?: number
+          carbs_g?: number
+          created_at?: string
+          date?: string
+          fat_g?: number
+          id?: string
+          meal_type?: string
+          name: string
+          notes?: string | null
+          protein_g?: number
+          servings?: number
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs_g?: number
+          created_at?: string
+          date?: string
+          fat_g?: number
+          id?: string
+          meal_type?: string
+          name?: string
+          notes?: string | null
+          protein_g?: number
+          servings?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       knowledge_sources: {
         Row: {
           active: boolean
@@ -297,6 +342,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meal_plans: {
+        Row: {
+          active: boolean
+          carbs_g: number
+          created_at: string
+          daily_calories: number
+          fat_g: number
+          goal: string | null
+          id: string
+          meals: Json
+          notes: string | null
+          protein_g: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          carbs_g: number
+          created_at?: string
+          daily_calories: number
+          fat_g: number
+          goal?: string | null
+          id?: string
+          meals?: Json
+          notes?: string | null
+          protein_g: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          carbs_g?: number
+          created_at?: string
+          daily_calories?: number
+          fat_g?: number
+          goal?: string | null
+          id?: string
+          meals?: Json
+          notes?: string | null
+          protein_g?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       onboarding_responses: {
         Row: {
