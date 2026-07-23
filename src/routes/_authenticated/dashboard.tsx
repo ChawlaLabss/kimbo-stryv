@@ -134,6 +134,18 @@ function Dashboard() {
         </Link>
       )}
 
+      {notes.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Coach insights</h2>
+            <span className="text-[10px] text-muted-foreground">{notes.length} new</span>
+          </div>
+          {notes.map((n) => <NotificationCard key={n.id} note={n} onDismiss={() => dismiss(n.id)} />)}
+        </div>
+      )}
+
+
+
 
       <div
         className="relative overflow-hidden rounded-2xl border border-border p-5"
