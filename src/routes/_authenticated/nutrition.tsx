@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/nutrition")({
 type MealSuggestion = {
   name: string; time: string; calories: number;
   protein_g: number; carbs_g: number; fat_g: number; items: string[];
+  alternatives?: string[]; purpose?: string;
 };
 
 type MealPlan = {
@@ -25,6 +26,11 @@ type MealPlan = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  fiber_g: number | null;
+  water_ml: number | null;
+  meals_per_day: number | null;
+  excluded: string[] | null;
+  goal: string | null;
   notes: string | null;
   meals: MealSuggestion[];
 };
@@ -82,7 +88,9 @@ function NutritionPage() {
     const { error } = await supabase.from("meal_plans").insert({
       user_id: uid, active: true,
       daily_calories: mp.daily_calories, protein_g: mp.protein_g,
-      carbs_g: mp.carbs_g, fat_g: mp.fat_g, goal: mp.goal, notes: mp.notes, meals: mp.meals,
+      carbs_g: mp.carbs_g, fat_g: mp.fat_g,
+      fiber_g: mp.fiber_g, water_ml: mp.water_ml, meals_per_day: mp.meals_per_day,
+      excluded: mp.excluded, goal: mp.goal, notes: mp.notes, meals: mp.meals,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Meal plan updated");
