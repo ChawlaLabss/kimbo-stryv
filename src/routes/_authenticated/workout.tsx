@@ -323,7 +323,7 @@ function WorkoutPage() {
                 >
                   {s.is_warmup ? "W" : i + 1}
                 </button>
-                <Input inputMode="decimal" placeholder={prev?.weight != null ? `${prev.weight}` : "kg"} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
+                <Input inputMode="decimal" placeholder={prev?.weight != null ? String(kgToDisplay(prev.weight, unit) ?? unit) : unit} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
                 <Input inputMode="numeric" placeholder={prev?.reps != null ? `${prev.reps}` : "reps"} value={s.reps} onChange={(e) => updateSet(current, i, { reps: e.target.value })} className="h-9" />
                 <Input inputMode="numeric" placeholder="-" value={s.rir} onChange={(e) => updateSet(current, i, { rir: e.target.value })} className="h-9" />
                 <button
