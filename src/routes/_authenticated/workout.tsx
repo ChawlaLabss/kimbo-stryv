@@ -178,7 +178,7 @@ function WorkoutPage() {
         exercise_id: es.ex.exercise_id,
         exercise_name: es.ex.exercise_name,
         set_index: setIdx,
-        weight: st.weight ? Number(st.weight) : null,
+        weight: st.weight ? displayToKg(st.weight, unit) : null,
         reps: st.reps ? Number(st.reps) : null,
         rir: st.rir ? Number(st.rir) : null,
         is_warmup: st.is_warmup,
