@@ -121,6 +121,45 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          ref_id: string | null
+          ref_type: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          kind: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           created_at: string
@@ -770,6 +809,8 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
+          coach_analysis: string | null
+          coach_verdict: string | null
           completed: boolean
           created_at: string
           date: string
@@ -786,6 +827,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coach_analysis?: string | null
+          coach_verdict?: string | null
           completed?: boolean
           created_at?: string
           date?: string
@@ -802,6 +845,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coach_analysis?: string | null
+          coach_verdict?: string | null
           completed?: boolean
           created_at?: string
           date?: string
