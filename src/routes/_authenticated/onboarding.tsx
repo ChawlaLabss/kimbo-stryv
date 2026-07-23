@@ -374,11 +374,56 @@ function Onboarding() {
                 ))}
               </RadioGroup>
             </Field>
-            <Field label="Dietary preferences">
-              <Input value={f.dietary_preferences} onChange={(e) => setF({ ...f, dietary_preferences: e.target.value })} placeholder="omnivore, vegetarian, halal…" />
+            <Field label="Diet type">
+              <RadioGroup value={f.diet_type} onValueChange={(v) => setF({ ...f, diet_type: v })} className="grid grid-cols-2 gap-2">
+                {DIET_OPTIONS.map((v) => (
+                  <ChipRadio key={v} value={v} label={v.replace(/_/g, " ")} />
+                ))}
+              </RadioGroup>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Your meal plan will filter out foods that don't fit this diet and tie calories to your goal ({f.goal.replace(/_/g, " ") || "—"}).
+              </p>
             </Field>
-            <Field label="Allergies">
-              <Input value={f.allergies} onChange={(e) => setF({ ...f, allergies: e.target.value })} placeholder="e.g. peanuts, shellfish" />
+            <Field label="Allergies (won't appear in your plan)">
+              <div className="flex flex-wrap gap-2">
+                {ALLERGY_OPTIONS.map((a) => {
+                  const on = f.allergies_list.includes(a);
+                  return (
+                    <button
+                      type="button"
+                      key={a}
+                      onClick={() => toggleArr("allergies_list", a)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${on ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Food sensitivities">
+              <div className="flex flex-wrap gap-2">
+                {SENSITIVITY_OPTIONS.map((a) => {
+                  const on = f.sensitivities_list.includes(a);
+                  return (
+                    <button
+                      type="button"
+                      key={a}
+                      onClick={() => toggleArr("sensitivities_list", a)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${on ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Disliked foods (comma-separated)">
+              <Input
+                value={f.disliked_foods}
+                onChange={(e) => setF({ ...f, disliked_foods: e.target.value })}
+                placeholder="e.g. broccoli, salmon, cottage cheese"
+              />
             </Field>
           </div>
         )}
