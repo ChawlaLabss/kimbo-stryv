@@ -50,6 +50,7 @@ function WorkoutPage() {
   const [loading, setLoading] = useState(true);
   const [restLeft, setRestLeft] = useState(0);
   const [finishing, setFinishing] = useState(false);
+  const [unit, setUnit] = useState<Unit>(getCachedUnit());
   const [fb, setFb] = useState({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
