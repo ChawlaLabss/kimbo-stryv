@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell, X, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { formatWeight, getCachedUnit, setCachedUnit, type Unit } from "@/lib/units";
+import { generateCoachInsights, markNotificationRead } from "@/lib/coach-insights.functions";
+
+type CoachNote = { id: string; kind: string; title: string; body: string; severity: string; ref_type: string | null; ref_id: string | null };
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -25,8 +28,20 @@ function Dashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState<CoachNote[]>([]);
 
   const [unit, setUnit] = useState<Unit>(getCachedUnit());
+
+  useEffect(() => {
+    generateCoachInsights({ data: undefined as never })
+      .then((r) => setNotes(r.notifications as CoachNote[]))
+      .catch(() => {/* non-fatal */});
+  }, []);
+
+  const dismiss = async (id: string) => {
+    setNotes((prev) => prev.filter((n) => n.id !== id));
+    try { await markNotificationRead({ data: { id } }); } catch {/* ignore */}
+  };
 
   useEffect(() => {
     (async () => {
@@ -119,6 +134,18 @@ function Dashboard() {
         </Link>
       )}
 
+      {notes.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Coach insights</h2>
+            <span className="text-[10px] text-muted-foreground">{notes.length} new</span>
+          </div>
+          {notes.map((n) => <NotificationCard key={n.id} note={n} onDismiss={() => dismiss(n.id)} />)}
+        </div>
+      )}
+
+
+
 
       <div
         className="relative overflow-hidden rounded-2xl border border-border p-5"
@@ -210,6 +237,29 @@ function Stat({ icon: Icon, value, label }: { icon: React.ComponentType<{ classN
       <Icon className="mx-auto h-4 w-4 text-primary" />
       <div className="mt-1 font-display text-lg font-bold">{value}</div>
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+function NotificationCard({ note, onDismiss }: { note: CoachNote; onDismiss: () => void }) {
+  const tone = note.severity === "alert"
+    ? { border: "border-destructive/50", bg: "bg-destructive/10", icon: AlertTriangle, iconClass: "text-destructive" }
+    : note.severity === "warn"
+    ? { border: "border-yellow-500/40", bg: "bg-yellow-500/10", icon: AlertTriangle, iconClass: "text-yellow-500" }
+    : note.severity === "success"
+    ? { border: "border-primary/40", bg: "bg-primary/10", icon: CheckCircle2, iconClass: "text-primary" }
+    : { border: "border-border", bg: "bg-card", icon: Sparkles, iconClass: "text-primary" };
+  const Icon = tone.icon;
+  return (
+    <div className={`flex items-start gap-3 rounded-2xl border p-3 ${tone.border} ${tone.bg}`}>
+      <div className={`mt-0.5 ${tone.iconClass}`}><Icon className="h-4 w-4" /></div>
+      <div className="flex-1">
+        <div className="text-sm font-semibold">{note.title}</div>
+        <div className="text-xs text-muted-foreground">{note.body}</div>
+      </div>
+      <button aria-label="Dismiss" onClick={onDismiss} className="text-muted-foreground hover:text-foreground">
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }
