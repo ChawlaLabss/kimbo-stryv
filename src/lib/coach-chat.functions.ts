@@ -100,9 +100,9 @@ function buildSystemPrompt(ctx: {
   personaStyle: string;
   personaName: string;
   mealPlan: { daily_calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null; fiber_g: number | null; water_ml: number | null; goal: string | null } | null;
-  foodLogs: Array<{ date: string; meal: string | null; food_name: string; calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null }>;
-  dailyCheckins: Array<{ date: string; weight_kg: number | null; mood: number | null; fasted: boolean | null; energy: number | null; sleep_hours: number | null; notes: string | null }>;
-  weeklyCheckin: { week_start: string; body_weight_kg: number | null; meal_accuracy: number | null; water_accuracy: number | null; steps_avg: number | null; hunger: number | null; digestion: string | null; biggest_win: string | null; biggest_challenge: string | null; sleep: number | null; stress: number | null; motivation: number | null; energy: number | null; soreness: number | null } | null;
+  foodLogs: Array<{ date: string; meal_type: string | null; name: string; calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null; servings?: number | null }>;
+  dailyCheckins: Array<{ date: string; weight_kg: number | null; mood: number | null; fasted: boolean | null; note: string | null }>;
+  weeklyCheckin: { week_start: string; body_weight_kg: number | null; meal_accuracy: number | null; water_accuracy: number | null; steps_completed: number | null; hunger: number | null; digestion: number | null; biggest_win: string | null; biggest_challenge: string | null; sleep_quality: number | null; stress_level: number | null; motivation: number | null; energy: number | null; soreness: number | null } | null;
   today: string;
 }): string {
   const parts: string[] = [];
