@@ -241,6 +241,29 @@ function Stat({ icon: Icon, value, label }: { icon: React.ComponentType<{ classN
   );
 }
 
+function NotificationCard({ note, onDismiss }: { note: CoachNote; onDismiss: () => void }) {
+  const tone = note.severity === "alert"
+    ? { border: "border-destructive/50", bg: "bg-destructive/10", icon: AlertTriangle, iconClass: "text-destructive" }
+    : note.severity === "warn"
+    ? { border: "border-yellow-500/40", bg: "bg-yellow-500/10", icon: AlertTriangle, iconClass: "text-yellow-500" }
+    : note.severity === "success"
+    ? { border: "border-primary/40", bg: "bg-primary/10", icon: CheckCircle2, iconClass: "text-primary" }
+    : { border: "border-border", bg: "bg-card", icon: Sparkles, iconClass: "text-primary" };
+  const Icon = tone.icon;
+  return (
+    <div className={`flex items-start gap-3 rounded-2xl border p-3 ${tone.border} ${tone.bg}`}>
+      <div className={`mt-0.5 ${tone.iconClass}`}><Icon className="h-4 w-4" /></div>
+      <div className="flex-1">
+        <div className="text-sm font-semibold">{note.title}</div>
+        <div className="text-xs text-muted-foreground">{note.body}</div>
+      </div>
+      <button aria-label="Dismiss" onClick={onDismiss} className="text-muted-foreground hover:text-foreground">
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 function weekStart(): string {
   const d = new Date();
   const day = (d.getDay() + 6) % 7;
