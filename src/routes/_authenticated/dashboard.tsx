@@ -147,7 +147,7 @@ function Dashboard() {
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Today's plan</h2>
-          {data.program && <span className="text-xs text-muted-foreground">{data.program.split}</span>}
+          <Link to="/plan" className="text-xs text-primary">View full plan →</Link>
         </div>
         {data.todayDay ? (
           <Link to="/workout" className="block rounded-2xl border border-border bg-card p-5 transition hover:border-primary/50">
