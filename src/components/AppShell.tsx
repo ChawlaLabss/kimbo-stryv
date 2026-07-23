@@ -1,10 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Dumbbell, CalendarDays, Apple, MessageSquare, User } from "lucide-react";
+import { Home, Dumbbell, CalendarDays, Apple, MessageSquare, User, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: Home },
+  { to: "/plan", label: "Plan", icon: ClipboardList },
   { to: "/workout", label: "Workout", icon: Dumbbell },
   { to: "/nutrition", label: "Food", icon: Apple },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
@@ -29,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 function BottomNav({ pathname }: { pathname: string }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-2xl items-center justify-around px-2 py-2">
+      <div className="mx-auto flex max-w-2xl items-center justify-between gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.to);
@@ -38,7 +39,7 @@ function BottomNav({ pathname }: { pathname: string }) {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex min-w-14 flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                "flex min-w-12 shrink-0 flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-colors",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
