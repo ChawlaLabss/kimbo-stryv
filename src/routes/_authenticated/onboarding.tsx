@@ -41,6 +41,10 @@ type Form = {
   activity_level: string;
   dietary_preferences: string;
   allergies: string;
+  diet_type: string;
+  allergies_list: string[];
+  sensitivities_list: string[];
+  disliked_foods: string;
 };
 
 const empty: Form = {
@@ -49,11 +53,15 @@ const empty: Form = {
   days_per_week: "4", session_minutes: "60", location: "", equipment: [],
   split_preference: "", priority_muscles: [], injuries: "", avoid_exercises: "",
   sleep_hours: "7", stress_level: "3", activity_level: "", dietary_preferences: "",
-  allergies: "",
+  allergies: "", diet_type: "omnivore", allergies_list: [], sensitivities_list: [],
+  disliked_foods: "",
 };
 
 const EQUIPMENT_OPTIONS = ["Barbell","Dumbbells","Cables","Machines","Bench","Pull-up bar","Kettlebells","Bands","Bodyweight only"];
 const MUSCLE_OPTIONS = ["Chest","Back","Shoulders","Arms","Quads","Hamstrings","Glutes","Calves","Core"];
+const DIET_OPTIONS = ["omnivore","vegetarian","vegan","pescetarian","keto","low_carb","halal","kosher"];
+const ALLERGY_OPTIONS = ["Peanuts","Tree nuts","Dairy","Eggs","Soy","Gluten","Wheat","Shellfish","Fish","Sesame"];
+const SENSITIVITY_OPTIONS = ["Lactose","Gluten","FODMAPs","Spicy food","Caffeine","Artificial sweeteners"];
 
 function Onboarding() {
   const navigate = useNavigate();
