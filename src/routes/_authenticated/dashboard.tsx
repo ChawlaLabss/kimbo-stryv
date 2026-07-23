@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { formatWeight, getCachedUnit, setCachedUnit, type Unit } from "@/lib/units";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
