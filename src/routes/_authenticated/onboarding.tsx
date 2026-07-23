@@ -94,6 +94,10 @@ function Onboarding() {
           activity_level: data.activity_level ?? "",
           dietary_preferences: data.dietary_preferences ?? "",
           allergies: data.allergies ?? "",
+          diet_type: (data as { diet_type?: string }).diet_type ?? "omnivore",
+          allergies_list: (data as { allergies_list?: string[] }).allergies_list ?? [],
+          sensitivities_list: (data as { sensitivities_list?: string[] }).sensitivities_list ?? [],
+          disliked_foods: ((data as { disliked_foods?: string[] }).disliked_foods ?? []).join(", "),
         });
       }
     })();
