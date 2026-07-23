@@ -337,3 +337,132 @@ function TargetCell({ label, value }: { label: string; value: React.ReactNode })
     </div>
   );
 }
+
+function FoodSearch({
+  onPick,
+  currentMeal,
+}: {
+  onPick: (hit: FoodHit, meal_type: string) => void;
+  currentMeal: string;
+}) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<FoodHit[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const ctrlRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (q.trim().length < 2) {
+      setResults([]);
+      setErr(null);
+      return;
+    }
+    const t = setTimeout(async () => {
+      ctrlRef.current?.abort();
+      const ctrl = new AbortController();
+      ctrlRef.current = ctrl;
+      setLoading(true);
+      setErr(null);
+      try {
+        const hits = await searchFoods(q, ctrl.signal);
+        setResults(hits);
+      } catch (e) {
+        if ((e as { name?: string }).name !== "AbortError") {
+          setErr("Couldn't reach food database");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2">
+        <Search className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-bold">Search food</h2>
+      </div>
+      <div className="relative">
+        <Input
+          value={q}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          placeholder="Search brands & foods (e.g. Chobani, oatmeal, banana)"
+          className="pr-9"
+        />
+        {q && (
+          <button
+            type="button"
+            onClick={() => {
+              setQ("");
+              setResults([]);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {open && q.trim().length >= 2 && (
+        <div className="max-h-80 overflow-y-auto rounded-xl border border-border">
+          {loading && (
+            <div className="flex items-center justify-center gap-2 p-4 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Searching…
+            </div>
+          )}
+          {!loading && err && (
+            <div className="p-3 text-center text-xs text-destructive">{err}</div>
+          )}
+          {!loading && !err && results.length === 0 && (
+            <div className="p-3 text-center text-xs text-muted-foreground">
+              No matches. Try a brand or simpler term.
+            </div>
+          )}
+          {!loading &&
+            results.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => {
+                  onPick(r, currentMeal);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-3 border-b border-border p-3 text-left last:border-b-0 hover:bg-muted/40"
+              >
+                {r.image ? (
+                  <img
+                    src={r.image}
+                    alt=""
+                    loading="lazy"
+                    className="h-10 w-10 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <Utensils className="h-4 w-4" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{r.name}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">
+                    {r.brand ? `${r.brand} · ` : ""}
+                    {r.serving} · {r.calories} kcal · P{r.protein_g} C{r.carbs_g} F{r.fat_g}
+                  </div>
+                </div>
+                <Plus className="h-4 w-4 shrink-0 text-primary" />
+              </button>
+            ))}
+        </div>
+      )}
+      <p className="text-[10px] text-muted-foreground">
+        Data via Open Food Facts. Values are per serving when available, otherwise per 100 g — adjust servings before logging.
+      </p>
+    </div>
+  );
+}
