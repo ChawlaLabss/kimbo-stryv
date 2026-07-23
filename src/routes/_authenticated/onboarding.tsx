@@ -173,6 +173,22 @@ function Onboarding() {
           if (eErr) throw eErr;
         }
       }
+
+      // Generate meal plan
+      await supabase.from("meal_plans").update({ active: false }).eq("user_id", uid);
+      const mp = generateMealPlan(payload);
+      await supabase.from("meal_plans").insert({
+        user_id: uid,
+        active: true,
+        daily_calories: mp.daily_calories,
+        protein_g: mp.protein_g,
+        carbs_g: mp.carbs_g,
+        fat_g: mp.fat_g,
+        goal: mp.goal,
+        notes: mp.notes,
+        meals: mp.meals,
+      });
+
       toast.success("Program generated. Let's train.");
       navigate({ to: "/dashboard" });
     } catch (err) {
