@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Logo } from "@/components/Logo";
 import { generateProgram } from "@/lib/program-generator";
+import { generateMealPlan } from "@/lib/meal-plan-generator";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
