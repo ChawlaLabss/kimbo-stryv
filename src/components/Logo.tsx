@@ -11,7 +11,7 @@ export function Logo({ className, showText = true }: { className?: string; showT
       />
       {showText && (
         <span className="font-display text-xl font-black tracking-tight">
-          STR<span className="text-primary">V</span>
+          STRY<span className="text-primary">V</span>
         </span>
       )}
     </div>
