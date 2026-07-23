@@ -162,7 +162,7 @@ function buildSystemPrompt(ctx: {
   }
   if (ctx.weeklyCheckin) {
     const w = ctx.weeklyCheckin;
-    parts.push(`\nLATEST WEEKLY CHECK-IN (${w.week_start}): weight ${w.body_weight_kg ?? "?"}kg · meal accuracy ${w.meal_accuracy ?? "?"}% · water ${w.water_accuracy ?? "?"}% · steps ${w.steps_avg ?? "?"} · hunger ${w.hunger ?? "?"}/5 · digestion ${w.digestion ?? "?"} · sleep ${w.sleep ?? "?"}/5 · stress ${w.stress ?? "?"}/5 · motivation ${w.motivation ?? "?"}/5 · win: ${w.biggest_win ?? "-"} · challenge: ${w.biggest_challenge ?? "-"}`);
+    parts.push(`\nLATEST WEEKLY CHECK-IN (${w.week_start}): weight ${w.body_weight_kg ?? "?"}kg · meal accuracy ${w.meal_accuracy ?? "?"}% · water ${w.water_accuracy ?? "?"}% · steps ${w.steps_completed ?? "?"} · hunger ${w.hunger ?? "?"}/5 · digestion ${w.digestion ?? "?"}/5 · sleep ${w.sleep_quality ?? "?"}/5 · stress ${w.stress_level ?? "?"}/5 · motivation ${w.motivation ?? "?"}/5 · win: ${w.biggest_win ?? "-"} · challenge: ${w.biggest_challenge ?? "-"}`);
   }
   if (ctx.sources.length) {
     parts.push("\nAPPROVED KNOWLEDGE BASE (cite only these):");
