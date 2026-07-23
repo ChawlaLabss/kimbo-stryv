@@ -64,6 +64,9 @@ function WorkoutPage() {
     const { data: u } = await supabase.auth.getUser();
     const uid = u.user!.id;
     setUserId(uid);
+    const { data: prof } = await supabase.from("profiles").select("unit_pref").eq("id", uid).maybeSingle();
+    const pref = (prof?.unit_pref as Unit | undefined) ?? getCachedUnit();
+    setUnit(pref);
 
     const { data: program } = await supabase
       .from("training_programs")
