@@ -100,7 +100,8 @@ function CoachPage() {
                 onClick={() => selectPersona(p.id)}
                 className={`flex items-start gap-4 rounded-2xl border p-4 text-left transition ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background text-2xl">{p.emoji}</div>
+                <img src={p.image} alt={p.name} width={64} height={64} loading="lazy"
+                  className="h-16 w-16 shrink-0 rounded-xl object-cover" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <div className="font-display font-bold">{p.name}</div>
@@ -129,9 +130,10 @@ function CoachPage() {
         </div>
         <button
           onClick={() => setShowPicker(true)}
-          className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs hover:border-primary/50"
+          className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 pr-3 text-xs hover:border-primary/50"
         >
-          <span className="text-base leading-none">{persona.emoji}</span>
+          <img src={persona.image} alt={persona.name} width={28} height={28} loading="lazy"
+            className="h-7 w-7 rounded-full object-cover" />
           <span className="font-medium">{persona.name}</span>
           <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
@@ -140,7 +142,8 @@ function CoachPage() {
       <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border bg-card p-4">
         {messages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-3xl">{persona.emoji}</div>
+            <img src={persona.image} alt={persona.name} width={80} height={80} loading="lazy"
+              className="mx-auto h-20 w-20 rounded-2xl object-cover" />
             <p className="mt-3 text-sm font-medium">{persona.name} is ready.</p>
             <p className="text-xs text-muted-foreground">{persona.description}</p>
           </div>

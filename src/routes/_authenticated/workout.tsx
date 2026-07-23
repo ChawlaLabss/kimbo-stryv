@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { displayToKg, kgToDisplay, getCachedUnit, type Unit } from "@/lib/units";
 
 export const Route = createFileRoute("/_authenticated/workout")({
   component: WorkoutPage,
@@ -49,6 +50,7 @@ function WorkoutPage() {
   const [loading, setLoading] = useState(true);
   const [restLeft, setRestLeft] = useState(0);
   const [finishing, setFinishing] = useState(false);
+  const [unit, setUnit] = useState<Unit>(getCachedUnit());
   const [fb, setFb] = useState({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -62,6 +64,9 @@ function WorkoutPage() {
     const { data: u } = await supabase.auth.getUser();
     const uid = u.user!.id;
     setUserId(uid);
+    const { data: prof } = await supabase.from("profiles").select("unit_pref").eq("id", uid).maybeSingle();
+    const pref = (prof?.unit_pref as Unit | undefined) ?? getCachedUnit();
+    setUnit(pref);
 
     const { data: program } = await supabase
       .from("training_programs")
@@ -131,7 +136,7 @@ function WorkoutPage() {
         const found = rows.find((r) => r.set_index === k);
         return {
           set_index: k,
-          weight: found?.weight?.toString() ?? "",
+          weight: found?.weight != null ? String(kgToDisplay(Number(found.weight), pref) ?? "") : "",
           reps: found?.reps?.toString() ?? "",
           rir: found?.rir?.toString() ?? "",
           is_warmup: found?.is_warmup ?? false,
@@ -173,7 +178,7 @@ function WorkoutPage() {
         exercise_id: es.ex.exercise_id,
         exercise_name: es.ex.exercise_name,
         set_index: setIdx,
-        weight: st.weight ? Number(st.weight) : null,
+        weight: st.weight ? displayToKg(st.weight, unit) : null,
         reps: st.reps ? Number(st.reps) : null,
         rir: st.rir ? Number(st.rir) : null,
         is_warmup: st.is_warmup,
@@ -302,7 +307,7 @@ function WorkoutPage() {
         <div className="mt-4 space-y-2">
           <div className="grid grid-cols-[auto_1fr_1fr_60px_auto] items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
             <span className="w-6 text-center">#</span>
-            <span>Weight</span>
+            <span>Weight ({unit})</span>
             <span>Reps</span>
             <span>RIR</span>
             <span className="w-8" />
@@ -318,7 +323,7 @@ function WorkoutPage() {
                 >
                   {s.is_warmup ? "W" : i + 1}
                 </button>
-                <Input inputMode="decimal" placeholder={prev?.weight != null ? `${prev.weight}` : "kg"} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
+                <Input inputMode="decimal" placeholder={prev?.weight != null ? String(kgToDisplay(prev.weight, unit) ?? unit) : unit} value={s.weight} onChange={(e) => updateSet(current, i, { weight: e.target.value })} className="h-9" />
                 <Input inputMode="numeric" placeholder={prev?.reps != null ? `${prev.reps}` : "reps"} value={s.reps} onChange={(e) => updateSet(current, i, { reps: e.target.value })} className="h-9" />
                 <Input inputMode="numeric" placeholder="-" value={s.rir} onChange={(e) => updateSet(current, i, { rir: e.target.value })} className="h-9" />
                 <button

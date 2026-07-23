@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid } from "recharts";
-import { Trophy, TrendingUp, Dumbbell } from "lucide-react";
+import { Trophy, TrendingUp, Dumbbell, CalendarDays } from "lucide-react";
+import { getCachedUnit, kgToDisplay, unitLabel } from "@/lib/units";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   component: ProgressPage,
@@ -17,18 +18,26 @@ function ProgressPage() {
   const [prs, setPrs] = useState<PR[]>([]);
   const [adherence, setAdherence] = useState({ done: 0 });
   const [loading, setLoading] = useState(true);
+  const unit = getCachedUnit();
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user!.id;
 
-      const [meas, sessions] = await Promise.all([
+      const [meas, daily, sessions] = await Promise.all([
         supabase.from("body_measurements").select("date, weight_kg").eq("user_id", uid).order("date"),
+        supabase.from("daily_checkins").select("date, weight_kg").eq("user_id", uid).order("date"),
         supabase.from("workout_sessions").select("id, date, completed, logged_sets(weight, reps, exercise_name)").eq("user_id", uid).order("date"),
       ]);
 
-      setWeight((meas.data ?? []).filter((r) => r.weight_kg != null).map((r) => ({ date: r.date, value: Number(r.weight_kg) })));
+      // Merge weight sources by date (prefer daily_checkins, fall back to body_measurements)
+      const byDate = new Map<string, number>();
+      (meas.data ?? []).forEach((r) => { if (r.weight_kg != null) byDate.set(r.date, Number(r.weight_kg)); });
+      (daily.data ?? []).forEach((r) => { if (r.weight_kg != null) byDate.set(r.date, Number(r.weight_kg)); });
+      const wPoints = Array.from(byDate.entries()).sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, kg]) => ({ date, value: kgToDisplay(kg, unit) ?? 0 }));
+      setWeight(wPoints);
 
       const volumePoints: Point[] = [];
       const bestByExercise = new Map<string, PR>();
@@ -41,7 +50,7 @@ function ProgressPage() {
             vol += set.weight * set.reps;
             const prev = bestByExercise.get(set.exercise_name);
             if (!prev || set.weight > prev.weight) {
-              bestByExercise.set(set.exercise_name, { exercise_name: set.exercise_name, weight: set.weight, reps: set.reps, date: s.date });
+              bestByExercise.set(set.exercise_name, { exercise_name: set.exercise_name, weight: kgToDisplay(set.weight, unit) ?? 0, reps: set.reps, date: s.date });
             }
           }
         });
@@ -50,16 +59,20 @@ function ProgressPage() {
       setVolume(volumePoints);
       setPrs(Array.from(bestByExercise.values()).slice(0, 6));
       setAdherence({ done: (sessions.data ?? []).filter((s) => s.completed).length });
-
       setLoading(false);
     })();
-  }, []);
+  }, [unit]);
 
   if (loading) return <div className="pt-16 text-center text-sm text-muted-foreground">Loading progress…</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-black">Progress</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-black">Progress</h1>
+        <Link to="/calendar" className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs hover:border-primary/50">
+          <CalendarDays className="h-3.5 w-3.5" /> Calendar
+        </Link>
+      </div>
 
       <div className="grid grid-cols-3 gap-2">
         <StatCard icon={Trophy} label="PRs" value={prs.length} />
@@ -67,8 +80,8 @@ function ProgressPage() {
         <StatCard icon={TrendingUp} label="Weight logs" value={weight.length} />
       </div>
 
-      <Card title="Body weight">
-        {weight.length < 2 ? <Empty text="Log measurements in the weekly check-in." /> : (
+      <Card title={`Body weight (${unitLabel(unit)})`}>
+        {weight.length < 2 ? <Empty text="Log daily weigh-ins to build your trend." /> : (
           <ChartWrap>
             <LineChart data={weight}>
               <CartesianGrid stroke="oklch(0.24 0.005 260)" vertical={false} />
@@ -104,7 +117,7 @@ function ProgressPage() {
                   <div className="font-medium">{p.exercise_name}</div>
                   <div className="text-xs text-muted-foreground">{p.date}</div>
                 </div>
-                <div className="font-display text-lg font-bold text-primary">{p.weight}kg × {p.reps}</div>
+                <div className="font-display text-lg font-bold text-primary">{p.weight}{unit} × {p.reps}</div>
               </div>
             ))}
           </div>

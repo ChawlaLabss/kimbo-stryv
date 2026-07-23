@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { formatWeight, getCachedUnit, setCachedUnit, type Unit } from "@/lib/units";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -25,6 +26,8 @@ function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [unit, setUnit] = useState<Unit>(getCachedUnit());
+
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
@@ -32,7 +35,7 @@ function Dashboard() {
 
       const today = new Date().toISOString().slice(0, 10);
       const [profile, onb, program, sessions, meas, daily] = await Promise.all([
-        supabase.from("profiles").select("display_name").eq("id", uid).maybeSingle(),
+        supabase.from("profiles").select("display_name, unit_pref").eq("id", uid).maybeSingle(),
         supabase.from("onboarding_responses").select("completed, days_per_week, weight_kg").eq("user_id", uid).maybeSingle(),
         supabase.from("training_programs").select("*, program_days(*, program_exercises(count))").eq("user_id", uid).eq("active", true).maybeSingle(),
         supabase.from("workout_sessions").select("id, date, completed").eq("user_id", uid).eq("completed", true).gte("date", weekStart()),
@@ -44,6 +47,9 @@ function Dashboard() {
         navigate({ to: "/onboarding" });
         return;
       }
+      const pref = ((profile.data as { unit_pref?: Unit } | null)?.unit_pref) ?? getCachedUnit();
+      setUnit(pref);
+      setCachedUnit(pref);
 
       const todayIdx = ((new Date().getDay() + 6) % 7);
       const days = (program.data?.program_days ?? []) as Array<{ id: string; day_index: number; name: string; muscle_groups: string[]; program_exercises: { count: number }[] }>;
@@ -107,7 +113,7 @@ function Dashboard() {
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Today's weigh-in logged ✓</div>
-            <div className="text-xs text-muted-foreground">{data.weightKg ? `${data.weightKg} kg` : "Tap to update"}</div>
+            <div className="text-xs text-muted-foreground">{data.weightKg != null ? formatWeight(data.weightKg, unit) : "Tap to update"}</div>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </Link>
@@ -185,7 +191,7 @@ function Dashboard() {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="text-xs text-muted-foreground">Body weight</div>
-            <div className="mt-1 font-display text-2xl font-bold">{data.weightKg ? `${data.weightKg} kg` : "—"}</div>
+            <div className="mt-1 font-display text-2xl font-bold">{data.weightKg != null ? formatWeight(data.weightKg, unit) : "—"}</div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="text-xs text-muted-foreground">Week progress</div>
