@@ -41,6 +41,10 @@ type Form = {
   activity_level: string;
   dietary_preferences: string;
   allergies: string;
+  diet_type: string;
+  allergies_list: string[];
+  sensitivities_list: string[];
+  disliked_foods: string;
 };
 
 const empty: Form = {
@@ -49,11 +53,15 @@ const empty: Form = {
   days_per_week: "4", session_minutes: "60", location: "", equipment: [],
   split_preference: "", priority_muscles: [], injuries: "", avoid_exercises: "",
   sleep_hours: "7", stress_level: "3", activity_level: "", dietary_preferences: "",
-  allergies: "",
+  allergies: "", diet_type: "omnivore", allergies_list: [], sensitivities_list: [],
+  disliked_foods: "",
 };
 
 const EQUIPMENT_OPTIONS = ["Barbell","Dumbbells","Cables","Machines","Bench","Pull-up bar","Kettlebells","Bands","Bodyweight only"];
 const MUSCLE_OPTIONS = ["Chest","Back","Shoulders","Arms","Quads","Hamstrings","Glutes","Calves","Core"];
+const DIET_OPTIONS = ["omnivore","vegetarian","vegan","pescetarian","keto","low_carb","halal","kosher"];
+const ALLERGY_OPTIONS = ["Peanuts","Tree nuts","Dairy","Eggs","Soy","Gluten","Wheat","Shellfish","Fish","Sesame"];
+const SENSITIVITY_OPTIONS = ["Lactose","Gluten","FODMAPs","Spicy food","Caffeine","Artificial sweeteners"];
 
 function Onboarding() {
   const navigate = useNavigate();
@@ -86,6 +94,10 @@ function Onboarding() {
           activity_level: data.activity_level ?? "",
           dietary_preferences: data.dietary_preferences ?? "",
           allergies: data.allergies ?? "",
+          diet_type: (data as { diet_type?: string }).diet_type ?? "omnivore",
+          allergies_list: (data as { allergies_list?: string[] }).allergies_list ?? [],
+          sensitivities_list: (data as { sensitivities_list?: string[] }).sensitivities_list ?? [],
+          disliked_foods: ((data as { disliked_foods?: string[] }).disliked_foods ?? []).join(", "),
         });
       }
     })();
@@ -94,12 +106,14 @@ function Onboarding() {
   const steps = ["About you", "Goals", "Experience", "Equipment", "Priorities", "Recovery", "Review"];
   const progress = ((step + 1) / steps.length) * 100;
 
-  function toggleArr(key: "equipment" | "priority_muscles", value: string) {
+  function toggleArr(key: "equipment" | "priority_muscles" | "allergies_list" | "sensitivities_list", value: string) {
     setF((p) => {
-      const arr = p[key];
+      const arr = p[key] as string[];
       return { ...p, [key]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] };
     });
   }
+
+  const dislikesArr = () => f.disliked_foods.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
 
   async function handleFinish() {
     setSaving(true);
@@ -124,8 +138,12 @@ function Onboarding() {
         sleep_hours: f.sleep_hours ? Number(f.sleep_hours) : null,
         stress_level: f.stress_level ? Number(f.stress_level) : null,
         activity_level: f.activity_level || null,
-        dietary_preferences: f.dietary_preferences || null,
-        allergies: f.allergies || null,
+        dietary_preferences: f.diet_type || f.dietary_preferences || null,
+        allergies: f.allergies_list.join(", ") || f.allergies || null,
+        diet_type: f.diet_type || null,
+        allergies_list: f.allergies_list,
+        sensitivities_list: f.sensitivities_list,
+        disliked_foods: dislikesArr(),
         completed: true,
       };
       const { error: obErr } = await supabase.from("onboarding_responses").upsert(payload, { onConflict: "user_id" });
@@ -184,6 +202,10 @@ function Onboarding() {
         protein_g: mp.protein_g,
         carbs_g: mp.carbs_g,
         fat_g: mp.fat_g,
+        fiber_g: mp.fiber_g,
+        water_ml: mp.water_ml,
+        meals_per_day: mp.meals_per_day,
+        excluded: mp.excluded,
         goal: mp.goal,
         notes: mp.notes,
         meals: mp.meals,
@@ -352,11 +374,56 @@ function Onboarding() {
                 ))}
               </RadioGroup>
             </Field>
-            <Field label="Dietary preferences">
-              <Input value={f.dietary_preferences} onChange={(e) => setF({ ...f, dietary_preferences: e.target.value })} placeholder="omnivore, vegetarian, halal…" />
+            <Field label="Diet type">
+              <RadioGroup value={f.diet_type} onValueChange={(v) => setF({ ...f, diet_type: v })} className="grid grid-cols-2 gap-2">
+                {DIET_OPTIONS.map((v) => (
+                  <ChipRadio key={v} value={v} label={v.replace(/_/g, " ")} />
+                ))}
+              </RadioGroup>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Your meal plan will filter out foods that don't fit this diet and tie calories to your goal ({f.goal.replace(/_/g, " ") || "—"}).
+              </p>
             </Field>
-            <Field label="Allergies">
-              <Input value={f.allergies} onChange={(e) => setF({ ...f, allergies: e.target.value })} placeholder="e.g. peanuts, shellfish" />
+            <Field label="Allergies (won't appear in your plan)">
+              <div className="flex flex-wrap gap-2">
+                {ALLERGY_OPTIONS.map((a) => {
+                  const on = f.allergies_list.includes(a);
+                  return (
+                    <button
+                      type="button"
+                      key={a}
+                      onClick={() => toggleArr("allergies_list", a)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${on ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Food sensitivities">
+              <div className="flex flex-wrap gap-2">
+                {SENSITIVITY_OPTIONS.map((a) => {
+                  const on = f.sensitivities_list.includes(a);
+                  return (
+                    <button
+                      type="button"
+                      key={a}
+                      onClick={() => toggleArr("sensitivities_list", a)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${on ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Disliked foods (comma-separated)">
+              <Input
+                value={f.disliked_foods}
+                onChange={(e) => setF({ ...f, disliked_foods: e.target.value })}
+                placeholder="e.g. broccoli, salmon, cottage cheese"
+              />
             </Field>
           </div>
         )}
