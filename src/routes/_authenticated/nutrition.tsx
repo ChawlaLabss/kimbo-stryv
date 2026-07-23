@@ -283,24 +283,52 @@ function NutritionPage() {
 
       {tab === "plan" && plan && (
         <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-primary">Goal-linked plan</div>
+            <div className="mt-1 font-display text-lg font-bold capitalize">{(plan.goal ?? "general").replace(/_/g, " ")}</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {plan.meals_per_day ?? plan.meals.length} meals/day · targets calculated from your bodyweight, activity, and goal.
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
             <TargetCell label="kcal" value={plan.daily_calories} />
             <TargetCell label="Protein" value={`${plan.protein_g}g`} />
             <TargetCell label="Carbs" value={`${plan.carbs_g}g`} />
             <TargetCell label="Fat" value={`${plan.fat_g}g`} />
+            <TargetCell label="Fiber" value={plan.fiber_g ? `${plan.fiber_g}g` : "—"} />
+            <TargetCell label="Water" value={plan.water_ml ? `${(plan.water_ml / 1000).toFixed(1)}L` : "—"} />
           </div>
+
+          {plan.excluded && plan.excluded.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Excluded from your plan</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {plan.excluded.map((e, i) => (
+                  <span key={i} className="rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] text-destructive">{e}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {plan.meals.map((m, i) => (
             <div key={i} className="rounded-2xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
                   <div className="font-display text-base font-bold">{m.name}</div>
                   <div className="text-xs text-muted-foreground">{m.time} · {m.calories} kcal · P{m.protein_g} C{m.carbs_g} F{m.fat_g}</div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => quickAddMeal(m)}>Log</Button>
               </div>
+              {m.purpose && <p className="mt-2 text-[11px] italic text-muted-foreground">{m.purpose}</p>}
               <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
                 {m.items.map((it, j) => <li key={j}>• {it}</li>)}
               </ul>
+              {m.alternatives && m.alternatives.length > 0 && (
+                <div className="mt-3 space-y-0.5 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                  {m.alternatives.map((a, j) => <div key={j}>↔ {a}</div>)}
+                </div>
+              )}
             </div>
           ))}
           {plan.notes && (
