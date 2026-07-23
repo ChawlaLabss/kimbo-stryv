@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight, PlayCircle, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { displayToKg, kgToDisplay, getCachedUnit, type Unit } from "@/lib/units";
+import { getFormVideoEmbedUrl, getFormSearchUrl } from "@/lib/exercise-videos";
 
 export const Route = createFileRoute("/_authenticated/workout")({
   component: WorkoutPage,
@@ -52,6 +53,7 @@ function WorkoutPage() {
   const [finishing, setFinishing] = useState(false);
   const [unit, setUnit] = useState<Unit>(getCachedUnit());
   const [fb, setFb] = useState({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
+  const [showVideo, setShowVideo] = useState(false);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -304,6 +306,8 @@ function WorkoutPage() {
           </div>
         </div>
 
+        <FormVideo name={es.ex.exercise_name} open={showVideo} setOpen={setShowVideo} />
+
         <div className="mt-4 space-y-2">
           <div className="grid grid-cols-[auto_1fr_1fr_60px_auto] items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
             <span className="w-6 text-center">#</span>
@@ -380,3 +384,51 @@ function WorkoutPage() {
     </div>
   );
 }
+
+function FormVideo({ name, open, setOpen }: { name: string; open: boolean; setOpen: (v: boolean) => void }) {
+  const embed = getFormVideoEmbedUrl(name);
+  const search = getFormSearchUrl(name);
+  return (
+    <div className="mt-3">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-secondary"
+        >
+          <PlayCircle className="h-4 w-4 text-primary" />
+          {open ? "Hide form video" : embed ? "Watch form video" : "Search form video"}
+        </button>
+        {embed && (
+          <a href={search} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
+            More <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+      {open && (
+        embed ? (
+          <div className="mt-2 aspect-video overflow-hidden rounded-xl border border-border bg-black">
+            <iframe
+              src={embed}
+              title={`${name} form demonstration`}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <a
+            href={search}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 flex items-center justify-between rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <span>No curated demo yet — open a search on YouTube.</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )
+      )}
+    </div>
+  );
+}
+
