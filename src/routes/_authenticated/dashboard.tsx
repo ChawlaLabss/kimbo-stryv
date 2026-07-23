@@ -100,7 +100,7 @@ function Dashboard() {
       <div>
         <p className="text-sm text-muted-foreground">Good morning,</p>
         <h1 className="font-display text-3xl font-black">{data.name} <span className="text-primary">💪</span></h1>
-        <p className="text-sm text-muted-foreground">Ready to STRV today?</p>
+        <p className="text-sm text-muted-foreground">Ready to STRYV today?</p>
       </div>
 
       {!data.dailyDone ? (

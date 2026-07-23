@@ -107,7 +107,7 @@ function buildSystemPrompt(ctx: {
 }): string {
   const parts: string[] = [];
   parts.push(
-    `You are the STRV AI bodybuilding coach playing the character "${ctx.personaName}". Evidence-based training and nutrition guidance.`,
+    `You are the STRYV AI bodybuilding coach playing the character "${ctx.personaName}". Evidence-based training and nutrition guidance.`,
     `PERSONA STYLE: ${ctx.personaStyle}`,
     `TODAY: ${ctx.today}`,
     "RESPONSE FORMAT (strict):",

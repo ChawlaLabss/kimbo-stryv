@@ -1,4 +1,4 @@
-# Launching STRV Coach on iOS
+# Launching STRYV Coach on iOS
 
 This app is a web app wrapped as a native iOS app with **Capacitor**. Everything
 below runs on your **Mac with Xcode installed** — Lovable can't compile or
@@ -47,7 +47,7 @@ The `ios/` folder is now a real Xcode project. Commit it to git.
 
 1. Select the **App** target → **Signing & Capabilities**.
 2. Team: your Apple Developer team.
-3. Bundle Identifier: `com.strv.coach` (change in `capacitor.config.ts` if taken).
+3. Bundle Identifier: `com.stryv.coach` (change in `capacitor.config.ts` if taken).
 4. Click **+ Capability** and add:
    - **Push Notifications**
    - **HealthKit** (check "Clinical Health Records" off unless needed)
@@ -61,18 +61,18 @@ Xcode → `App/Info.plist` → add these keys (Apple **rejects** the build witho
 
 | Key | Value |
 | --- | --- |
-| `NSCameraUsageDescription` | "STRV uses the camera to capture progress photos for your weekly check-in." |
-| `NSPhotoLibraryUsageDescription` | "STRV lets you attach progress photos from your library." |
-| `NSPhotoLibraryAddUsageDescription` | "STRV can save progress photos back to your library." |
-| `NSHealthShareUsageDescription` | "STRV reads body weight and steps from Apple Health to personalize your training." |
-| `NSHealthUpdateUsageDescription` | "STRV can log workouts to Apple Health when you complete a session." |
+| `NSCameraUsageDescription` | "STRYV uses the camera to capture progress photos for your weekly check-in." |
+| `NSPhotoLibraryUsageDescription` | "STRYV lets you attach progress photos from your library." |
+| `NSPhotoLibraryAddUsageDescription` | "STRYV can save progress photos back to your library." |
+| `NSHealthShareUsageDescription` | "STRYV reads body weight and steps from Apple Health to personalize your training." |
+| `NSHealthUpdateUsageDescription` | "STRYV can log workouts to Apple Health when you complete a session." |
 
 ---
 
 ## 4. Push notifications (APNs + FCM)
 
 1. Apple Developer → **Keys** → create an **APNs Auth Key** (.p8). Note the Key ID and Team ID.
-2. Create a **Firebase** project → add an iOS app with bundle id `com.strv.coach`.
+2. Create a **Firebase** project → add an iOS app with bundle id `com.stryv.coach`.
 3. Firebase → Project settings → **Cloud Messaging** → upload the `.p8` + Key ID + Team ID.
 4. Download `GoogleService-Info.plist` and drag it into the Xcode `App/` group.
 5. In `AppDelegate.swift` initialize Firebase (`FirebaseApp.configure()`).
@@ -99,7 +99,7 @@ Profile → Settings. On success, prefill daily check-in weight and steps.
 ## 6. App Store submission
 
 1. https://appstoreconnect.apple.com → **My Apps** → **+** → New App.
-2. Fill: name (STRV Coach), primary language, bundle ID, SKU, category **Health & Fitness**.
+2. Fill: name (STRYV Coach), primary language, bundle ID, SKU, category **Health & Fitness**.
 3. Add app icon (1024×1024, no alpha), screenshots (6.7" required), privacy
    policy URL, support URL, description.
 4. Complete the **App Privacy** questionnaire (Health data, Photos, Identifiers, Usage data).

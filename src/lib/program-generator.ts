@@ -1,4 +1,4 @@
-// STRV — program generator (rule-based v1)
+// STRYV — program generator (rule-based v1)
 // Given onboarding answers, produce a weekly training program.
 
 import type { OnboardingInput } from "./types";

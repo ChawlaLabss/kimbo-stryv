@@ -79,18 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "STRV — AI Bodybuilding Coach" },
+      { title: "STRYV — AI Bodybuilding Coach" },
       {
         name: "description",
         content:
-          "STRV is your AI bodybuilding coach. Personalized training plans, smart progression, and adaptive recommendations grounded in real exercise science.",
+          "STRYV is your AI bodybuilding coach. Personalized training plans, smart progression, and adaptive recommendations grounded in real exercise science.",
       },
       { name: "theme-color", content: "#0a0a0a" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "STRV" },
+      { name: "apple-mobile-web-app-title", content: "STRYV" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { property: "og:title", content: "STRV — AI Bodybuilding Coach" },
+      { property: "og:title", content: "STRYV — AI Bodybuilding Coach" },
       {
         property: "og:description",
         content: "Personalized, adaptive AI coaching for serious lifters.",
