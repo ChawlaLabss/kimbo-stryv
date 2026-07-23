@@ -11,6 +11,9 @@ import { displayToKg, kgToDisplay, getCachedUnit, type Unit } from "@/lib/units"
 import { getFormVideoEmbedUrl, getFormSearchUrl } from "@/lib/exercise-videos";
 
 export const Route = createFileRoute("/_authenticated/workout")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    dayIndex: search.dayIndex != null ? Number(search.dayIndex) : undefined,
+  }),
   component: WorkoutPage,
 });
 
@@ -43,6 +46,7 @@ type ExState = {
 
 function WorkoutPage() {
   const navigate = useNavigate();
+  const { dayIndex: dayIndexParam } = Route.useSearch();
   const [state, setState] = useState<ExState[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -84,7 +88,8 @@ function WorkoutPage() {
     const days = [...daysRaw].sort((a, b) => a.day_index - b.day_index).filter((d) => !d.is_rest);
     if (days.length === 0) { setLoading(false); return; }
     const todayIdx = ((new Date().getDay() + 6) % 7) % days.length;
-    const day = days[todayIdx];
+    const requestedIdx = dayIndexParam != null ? days.findIndex((d) => d.day_index === dayIndexParam) : -1;
+    const day = requestedIdx >= 0 ? days[requestedIdx] : days[todayIdx];
     setDayName(day.name);
 
     const today = new Date().toISOString().slice(0, 10);
