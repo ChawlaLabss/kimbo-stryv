@@ -21,4 +21,9 @@ export type OnboardingInput = {
   activity_level?: string | null;
   dietary_preferences?: string | null;
   allergies?: string | null;
+  // structured nutrition inputs
+  diet_type?: string | null;
+  allergies_list?: string[] | null;
+  sensitivities_list?: string[] | null;
+  disliked_foods?: string[] | null;
 };
