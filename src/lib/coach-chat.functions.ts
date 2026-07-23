@@ -157,7 +157,7 @@ function buildSystemPrompt(ctx: {
   if (ctx.dailyCheckins.length) {
     parts.push("\nDAILY CHECK-INS (last 7):");
     ctx.dailyCheckins.slice(0, 7).forEach((c) => {
-      parts.push(`- ${c.date}: ${c.weight_kg ?? "?"}kg${c.fasted ? " (fasted)" : ""} · mood ${c.mood ?? "-"}/5 · energy ${c.energy ?? "-"}/5 · sleep ${c.sleep_hours ?? "-"}h`);
+      parts.push(`- ${c.date}: ${c.weight_kg ?? "?"}kg${c.fasted ? " (fasted)" : ""} · mood ${c.mood ?? "-"}/5${c.note ? ` — ${c.note}` : ""}`);
     });
   }
   if (ctx.weeklyCheckin) {
