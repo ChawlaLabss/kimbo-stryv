@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS unit_pref TEXT NOT NULL DEFAULT 'kg' CHECK (unit_pref IN ('kg','lb'));
