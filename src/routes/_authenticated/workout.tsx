@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { displayToKg, kgToDisplay, getCachedUnit, type Unit } from "@/lib/units";
 
 export const Route = createFileRoute("/_authenticated/workout")({
   component: WorkoutPage,
