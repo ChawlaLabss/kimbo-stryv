@@ -28,8 +28,20 @@ function Dashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState<CoachNote[]>([]);
 
   const [unit, setUnit] = useState<Unit>(getCachedUnit());
+
+  useEffect(() => {
+    generateCoachInsights({ data: undefined as never })
+      .then((r) => setNotes(r.notifications as CoachNote[]))
+      .catch(() => {/* non-fatal */});
+  }, []);
+
+  const dismiss = async (id: string) => {
+    setNotes((prev) => prev.filter((n) => n.id !== id));
+    try { await markNotificationRead({ data: { id } }); } catch {/* ignore */}
+  };
 
   useEffect(() => {
     (async () => {
