@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// STRV Coach — Capacitor iOS wrapper
+// STRYV Coach — Capacitor iOS wrapper
 // Build the web bundle first (`bun run build`), then run `bunx cap sync ios`
 // and open Xcode with `bunx cap open ios`.
 const config: CapacitorConfig = {
-  appId: "com.strv.coach",
-  appName: "STRV Coach",
+  appId: "com.stryv.coach",
+  appName: "STRYV Coach",
   webDir: "dist",
   ios: {
     contentInset: "always",

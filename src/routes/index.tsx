@@ -84,7 +84,7 @@ function Landing() {
 
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} STRV</span>
+          <span>© {new Date().getFullYear()} STRYV</span>
           <span>Built for results.</span>
         </div>
       </footer>

@@ -6,7 +6,7 @@ export function Logo({ className, showText = true }: { className?: string; showT
     <div className={cn("flex items-center gap-2", className)}>
       <img
         src={logoAsset.url}
-        alt="STRV logo"
+        alt="STRYV logo"
         className="h-8 w-8 object-contain"
       />
       {showText && (

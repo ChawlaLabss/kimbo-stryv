@@ -85,7 +85,7 @@ function AuthPage() {
           {mode === "signin" ? "Welcome back." : "Start training smarter."}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {mode === "signin" ? "Sign in to your STRV account." : "Create your account. Takes under a minute."}
+          {mode === "signin" ? "Sign in to your STRYV account." : "Create your account. Takes under a minute."}
         </p>
 
         <Button variant="outline" onClick={handleGoogle} className="mt-8 h-11">

@@ -1,4 +1,4 @@
-// STRV — comprehensive meal plan generator (rule-based v2)
+// STRYV — comprehensive meal plan generator (rule-based v2)
 // Ties calories/macros directly to the training goal and filters foods
 // against dietary preference, allergies, sensitivities, and dislikes.
 import type { OnboardingInput } from "./types";

@@ -109,7 +109,7 @@ function ProfilePage() {
       </button>
 
       <p className="pt-4 text-center text-[10px] text-muted-foreground">
-        STRV provides educational fitness guidance. It is not a substitute for medical care.
+        STRYV provides educational fitness guidance. It is not a substitute for medical care.
       </p>
     </div>
   );

@@ -30,12 +30,12 @@ let cached: Unit | null = null;
 export function getCachedUnit(): Unit {
   if (cached) return cached;
   if (typeof window !== "undefined") {
-    const v = window.localStorage.getItem("strv:unit");
+    const v = window.localStorage.getItem("stryv:unit");
     if (v === "kg" || v === "lb") { cached = v; return v; }
   }
   return "kg";
 }
 export function setCachedUnit(u: Unit) {
   cached = u;
-  if (typeof window !== "undefined") window.localStorage.setItem("strv:unit", u);
+  if (typeof window !== "undefined") window.localStorage.setItem("stryv:unit", u);
 }

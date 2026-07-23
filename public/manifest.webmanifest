@@ -1,6 +1,6 @@
 {
-  "name": "STRV Coach",
-  "short_name": "STRV",
+  "name": "STRYV Coach",
+  "short_name": "STRYV",
   "description": "AI bodybuilding coach — personalized training, nutrition, and adaptive progression.",
   "start_url": "/",
   "scope": "/",
