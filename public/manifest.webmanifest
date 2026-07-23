@@ -1,0 +1,16 @@
+{
+  "name": "STRV Coach",
+  "short_name": "STRV",
+  "description": "AI bodybuilding coach — personalized training, nutrition, and adaptive progression.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
