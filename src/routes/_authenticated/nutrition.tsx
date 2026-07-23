@@ -198,6 +198,22 @@ function NutritionPage() {
             </div>
           )}
 
+          <FoodSearch
+            onPick={(hit, meal_type) => {
+              setForm({
+                meal_type,
+                name: hit.brand ? `${hit.brand} ${hit.name}` : hit.name,
+                calories: String(hit.calories),
+                protein_g: String(hit.protein_g),
+                carbs_g: String(hit.carbs_g),
+                fat_g: String(hit.fat_g),
+                servings: "1",
+              });
+              toast.success(`Loaded ${hit.name} — adjust servings and log`);
+            }}
+            currentMeal={form.meal_type}
+          />
+
           <form onSubmit={addFood} className="space-y-3 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2">
               <Plus className="h-4 w-4 text-primary" />
