@@ -349,42 +349,54 @@ export type Database = {
           carbs_g: number
           created_at: string
           daily_calories: number
+          excluded: Json
           fat_g: number
+          fiber_g: number | null
           goal: string | null
           id: string
           meals: Json
+          meals_per_day: number | null
           notes: string | null
           protein_g: number
           updated_at: string
           user_id: string
+          water_ml: number | null
         }
         Insert: {
           active?: boolean
           carbs_g: number
           created_at?: string
           daily_calories: number
+          excluded?: Json
           fat_g: number
+          fiber_g?: number | null
           goal?: string | null
           id?: string
           meals?: Json
+          meals_per_day?: number | null
           notes?: string | null
           protein_g: number
           updated_at?: string
           user_id: string
+          water_ml?: number | null
         }
         Update: {
           active?: boolean
           carbs_g?: number
           created_at?: string
           daily_calories?: number
+          excluded?: Json
           fat_g?: number
+          fiber_g?: number | null
           goal?: string | null
           id?: string
           meals?: Json
+          meals_per_day?: number | null
           notes?: string | null
           protein_g?: number
           updated_at?: string
           user_id?: string
+          water_ml?: number | null
         }
         Relationships: []
       }
@@ -393,11 +405,14 @@ export type Database = {
           activity_level: string | null
           age_range: string | null
           allergies: string | null
+          allergies_list: string[]
           avoid_exercises: string | null
           completed: boolean
           created_at: string
           days_per_week: number | null
+          diet_type: string | null
           dietary_preferences: string | null
+          disliked_foods: string[]
           equipment: string[] | null
           experience: string | null
           goal: string | null
@@ -406,6 +421,7 @@ export type Database = {
           injuries: string | null
           location: string | null
           priority_muscles: string[] | null
+          sensitivities_list: string[]
           session_minutes: number | null
           sex: string | null
           sleep_hours: number | null
@@ -422,11 +438,14 @@ export type Database = {
           activity_level?: string | null
           age_range?: string | null
           allergies?: string | null
+          allergies_list?: string[]
           avoid_exercises?: string | null
           completed?: boolean
           created_at?: string
           days_per_week?: number | null
+          diet_type?: string | null
           dietary_preferences?: string | null
+          disliked_foods?: string[]
           equipment?: string[] | null
           experience?: string | null
           goal?: string | null
@@ -435,6 +454,7 @@ export type Database = {
           injuries?: string | null
           location?: string | null
           priority_muscles?: string[] | null
+          sensitivities_list?: string[]
           session_minutes?: number | null
           sex?: string | null
           sleep_hours?: number | null
@@ -451,11 +471,14 @@ export type Database = {
           activity_level?: string | null
           age_range?: string | null
           allergies?: string | null
+          allergies_list?: string[]
           avoid_exercises?: string | null
           completed?: boolean
           created_at?: string
           days_per_week?: number | null
+          diet_type?: string | null
           dietary_preferences?: string | null
+          disliked_foods?: string[]
           equipment?: string[] | null
           experience?: string | null
           goal?: string | null
@@ -464,6 +487,7 @@ export type Database = {
           injuries?: string | null
           location?: string | null
           priority_muscles?: string[] | null
+          sensitivities_list?: string[]
           session_minutes?: number | null
           sex?: string | null
           sleep_hours?: number | null
