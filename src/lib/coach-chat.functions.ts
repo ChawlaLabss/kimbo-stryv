@@ -145,7 +145,7 @@ function buildSystemPrompt(ctx: {
     for (const l of ctx.foodLogs) {
       const d = (byDate[l.date] ||= { kcal: 0, p: 0, c: 0, f: 0, items: [] });
       d.kcal += l.calories ?? 0; d.p += l.protein_g ?? 0; d.c += l.carbs_g ?? 0; d.f += l.fat_g ?? 0;
-      if (d.items.length < 5) d.items.push(l.food_name);
+      if (d.items.length < 5) d.items.push(l.name);
     }
     parts.push("\nFOOD LOG (last 3 days):");
     Object.entries(byDate).slice(0, 3).forEach(([d, v]) => {
