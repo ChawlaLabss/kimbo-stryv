@@ -26,6 +26,8 @@ function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [unit, setUnit] = useState<Unit>(getCachedUnit());
+
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
