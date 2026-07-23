@@ -113,7 +113,7 @@ function Dashboard() {
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Today's weigh-in logged ✓</div>
-            <div className="text-xs text-muted-foreground">{data.weightKg ? `${data.weightKg} kg` : "Tap to update"}</div>
+            <div className="text-xs text-muted-foreground">{data.weightKg != null ? formatWeight(data.weightKg, unit) : "Tap to update"}</div>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </Link>
@@ -191,7 +191,7 @@ function Dashboard() {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="text-xs text-muted-foreground">Body weight</div>
-            <div className="mt-1 font-display text-2xl font-bold">{data.weightKg ? `${data.weightKg} kg` : "—"}</div>
+            <div className="mt-1 font-display text-2xl font-bold">{data.weightKg != null ? formatWeight(data.weightKg, unit) : "—"}</div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="text-xs text-muted-foreground">Week progress</div>
