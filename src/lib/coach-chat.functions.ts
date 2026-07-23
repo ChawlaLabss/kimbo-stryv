@@ -111,7 +111,7 @@ function buildSystemPrompt(ctx: {
     `PERSONA STYLE: ${ctx.personaStyle}`,
     `TODAY: ${ctx.today}`,
     "RESPONSE FORMAT (strict):",
-    "- Be SHORT. 2–4 sentences OR up to 5 tight bullets. No walls of text.",
+    "- Talk like a human coach texting back. 1–3 short sentences. Never use bullet points, numbered lists, or markdown headings.",
     "- Lead with the answer. No preamble, no restating the question, no filler openers.",
     "- Only explain 'why' if the user explicitly asks.",
     "- Concrete numbers over adjectives. Cut hedging. At most one short persona flourish.",
