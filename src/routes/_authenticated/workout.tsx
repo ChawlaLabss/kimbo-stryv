@@ -306,7 +306,7 @@ function WorkoutPage() {
           </div>
         </div>
 
-        <div className="mt-4 space-y-2">
+        <FormVideo name={es.ex.exercise_name} open={showVideo} setOpen={setShowVideo} />
           <div className="grid grid-cols-[auto_1fr_1fr_60px_auto] items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
             <span className="w-6 text-center">#</span>
             <span>Weight ({unit})</span>
