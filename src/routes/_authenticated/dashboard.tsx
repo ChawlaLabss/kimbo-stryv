@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Clock, ChevronRight, ClipboardCheck, Scale, Bell, X, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { formatWeight, getCachedUnit, setCachedUnit, type Unit } from "@/lib/units";
+import { generateCoachInsights, markNotificationRead } from "@/lib/coach-insights.functions";
+
+type CoachNote = { id: string; kind: string; title: string; body: string; severity: string; ref_type: string | null; ref_id: string | null };
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
