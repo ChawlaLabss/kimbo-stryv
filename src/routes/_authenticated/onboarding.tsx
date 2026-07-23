@@ -106,12 +106,14 @@ function Onboarding() {
   const steps = ["About you", "Goals", "Experience", "Equipment", "Priorities", "Recovery", "Review"];
   const progress = ((step + 1) / steps.length) * 100;
 
-  function toggleArr(key: "equipment" | "priority_muscles", value: string) {
+  function toggleArr(key: "equipment" | "priority_muscles" | "allergies_list" | "sensitivities_list", value: string) {
     setF((p) => {
-      const arr = p[key];
+      const arr = p[key] as string[];
       return { ...p, [key]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] };
     });
   }
+
+  const dislikesArr = () => f.disliked_foods.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
 
   async function handleFinish() {
     setSaving(true);
@@ -136,8 +138,12 @@ function Onboarding() {
         sleep_hours: f.sleep_hours ? Number(f.sleep_hours) : null,
         stress_level: f.stress_level ? Number(f.stress_level) : null,
         activity_level: f.activity_level || null,
-        dietary_preferences: f.dietary_preferences || null,
-        allergies: f.allergies || null,
+        dietary_preferences: f.diet_type || f.dietary_preferences || null,
+        allergies: f.allergies_list.join(", ") || f.allergies || null,
+        diet_type: f.diet_type || null,
+        allergies_list: f.allergies_list,
+        sensitivities_list: f.sensitivities_list,
+        disliked_foods: dislikesArr(),
         completed: true,
       };
       const { error: obErr } = await supabase.from("onboarding_responses").upsert(payload, { onConflict: "user_id" });
