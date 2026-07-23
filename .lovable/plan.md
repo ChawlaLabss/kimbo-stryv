@@ -1,74 +1,71 @@
-# Plan: Weekly Workout Plan Page
+Goal: Package the existing STRV web app as a native iOS app in the App Store using Capacitor, with real push notifications, camera access for progress photos, and Apple Health integration.
 
-## What we’re building
+---
 
-A dedicated **Plan** page that shows the user’s full weekly training program, and add a bottom-nav tab so users can tap straight into it. From each day on the plan, users can jump into the active workout with that day’s exercises.
+Phase 1 — iOS web foundation
+- Add a web app manifest (`public/manifest.webmanifest`) with app name, short name, theme/background colors, display mode, and icon references.
+- Add iOS meta tags to `src/routes/__root.tsx`: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-touch-icon`, and a `theme-color` tag.
+- Generate iOS app icon set from a single 1024×1024 source and place the files under `public/icons/`.
+- Ensure the bottom navigation handles the iOS safe area (`env(safe-area-inset-bottom)`) and the status bar does not clip headers.
+- Add a small in-app "Install the app" hint for users who visit in Safari before the native app ships.
 
-## User decisions
-- **Where to show**: New dedicated page
-- **Navigation**: Bottom-nav tab
-- **Interactions**: Tap to start workout
+Phase 2 — Capacitor integration
+- Add `@capacitor/core`, `@capacitor/ios`, `@capacitor/cli`, and `@capacitor/preferences` to the project.
+- Create `capacitor.config.ts` pointing the webDir at the Vite build output, with appId `com.strv.coach`, appName `STRV Coach`, and the server URL set to the Lovable published URL for the native build.
+- Configure the build pipeline so Capacitor can consume the app: adjust the TanStack Start build to emit a static output into `dist/` (or a dedicated `capacitor-dist/` folder) that Capacitor can sync.
+- Add npm scripts: `build:ios`, `sync:ios`, `open:ios`.
+- Run the iOS platform addition once (`capacitor add ios`) so the `ios/` native project is generated and checked into the repo.
+- Verify the app loads in the iOS simulator and that auth/session flows still work inside the WKWebView.
 
-## Scope
+Phase 3 — Native features
 
-1. **New route** `src/routes/_authenticated/plan.tsx` (`/plan`)
-   - Load the user’s active `training_programs` with its `program_days` and `program_exercises`.
-   - Display the program name, split, goal, days-per-week, and progression notes.
-   - Show each training day as a card: day name, muscle groups, rest/training badge, exercise count, and expandable exercise list.
-   - For each exercise show: sets, rep range, target RIR, rest seconds, and any notes.
-   - Each training day gets a **“Start this workout”** button that links to `/workout?dayIndex=<day_index>`.
-   - Rest days are shown but cannot be started.
+Camera (progress photos)
+- Add `@capacitor/camera`.
+- Create a thin adapter in `src/lib/native/camera.ts` that requests permission, opens the native camera/photo picker, and returns a base64 or file URI.
+- Update the weekly check-in and progress-photo flows so that on iOS they use the native camera when available, and fall back to the existing file picker on web.
+- Save the captured image to the existing private `progress-photos` Supabase storage bucket.
 
-2. **Update `src/routes/_authenticated/workout.tsx`**
-   - Add an optional `dayIndex` search parameter using `validateSearch`.
-   - When `dayIndex` is provided, start that day’s session instead of defaulting to today.
-   - When omitted, keep the existing today-based behavior.
-   - The existing session-lookup/creation logic (by `program_day_id` + today’s date) still applies, so users can resume an already-started day.
+Apple Health (steps, weight, workouts)
+- Add `@capacitor/healthkit` or a community-maintained Capacitor HealthKit plugin.
+- Request read permissions for steps, body weight, and mindful/wellness data categories.
+- Add a Health sync option in Profile/Settings that lets the user authorize Apple Health and choose which metrics to read.
+- On sync, pull the latest body weight into the daily check-in and the latest step count into the daily check-in steps field. Do not write back to Health without explicit permission.
 
-3. **Update `src/components/AppShell.tsx`**
-   - Add a **Plan** tab to the bottom navigation with a `ClipboardList` icon.
-   - Make the bottom nav horizontally scrollable so it can comfortably hold 7 items (`Home`, `Plan`, `Workout`, `Food`, `Calendar`, `Coach`, `Profile`).
-   - Keep the existing active-state styling.
+Push notifications
+- Add `@capacitor/push-notifications`.
+- Configure Firebase Cloud Messaging for iOS: create an Apple App ID in the Apple Developer portal, enable Push Notifications, generate an APNs Auth Key (.p8), and upload it to Firebase.
+- Add a Firebase iOS configuration file and the FCM SDK to the native iOS project.
+- Create a server route or server function to store FCM device tokens per user (or use Supabase Realtime as a fallback). Use the token to send targeted daily check-in reminders, weekly check-in prompts, and coach insight notifications.
+- Wire the coach notification system (`coach_notifications`) to send a push only when the user is not currently in the app.
 
-4. **Dashboard shortcut** (optional, small)
-   - Add a “View full plan →” link on the dashboard’s “Today’s plan” card so users can discover the new page.
+Phase 4 — App Store submission
+- Create an Apple Developer Program account (required; $99/year). You must do this step as the account owner because it involves DUNS/identity verification.
+- Register the App ID `com.strv.coach` in Apple Developer → Certificates, Identifiers & Profiles.
+- Create the App Store Connect record for STRV Coach, set up the required privacy policy URL, support URL, and app category (Health & Fitness).
+- Generate a Privacy Manifest (`PrivacyInfo.xcprivacy`) for the iOS project describing data collection (health, photos, identifiers, usage data).
+- Prepare App Store assets: 1024×1024 app icon, feature graphic, screenshots for 6.7" and 6.5" iPhone, 13" iPad, and a short app preview video.
+- Build the app: `npm run build:ios` → `sync:ios` → open Xcode → Archive → Distribute via App Store Connect.
+- Submit to TestFlight for internal testing, then submit to App Store Review.
 
-5. **Verify**
-   - Type-check and build the project.
-   - Smoke-test the new route and the workout search-param flow.
+---
 
-## Technical details
+Technical considerations
+- TanStack Start is full-stack by default. Capacitor is easiest with a static frontend. We will configure the Vite build so the Capacitor app consumes a static export of the same UI while the backend stays on Lovable Cloud (Supabase + TanStack server functions). The native app will still use the Lovable backend for data, auth, AI, and storage.
+- Web-based auth (Google/Apple OAuth) needs to complete inside the native app. We will keep the existing OAuth flow but ensure the redirect closes the in-app browser (SFSafariViewController) and returns to the app correctly.
+- Push notifications require Apple Developer portal setup that cannot be done by Lovable; you will need to download the APNs key and paste it into Firebase, then upload the Firebase config.
+- Apple HealthKit permissions require App Store review notes explaining why the data is being read and how it is used to personalize training/nutrition.
 
-- **Route file**: `src/routes/_authenticated/plan.tsx`
-  - Use `createFileRoute("/_authenticated/plan")`.
-  - Fetch with `supabase.auth.getUser()` then `supabase.from("training_programs").select("id, name, split, goal, days_per_week, notes, program_days(id, day_index, name, is_rest, muscle_groups, program_exercises(id, exercise_name, order_index, sets, rep_range, target_rir, rest_seconds, notes))").eq("user_id", uid).eq("active", true).maybeSingle()`.
-  - Sort days and exercises by `day_index` / `order_index`.
-  - Use existing design tokens: `bg-card`, `border-border`, `text-primary`, `rounded-2xl`, etc.
-  - Use `ChevronDown`/`ChevronUp` to toggle exercise lists, or keep them always expanded for quick scanability.
+---
 
-- **Workout search param**
-  - `import { z } from "zod";` and define `validateSearch: (search) => z.object({ dayIndex: z.coerce.number().optional() }).parse(search)`.
-  - In `bootstrap`, replace `const day = days[todayIdx]` with:
-    ```ts
-    const dayIndex = search.dayIndex ?? todayIdx;
-    const day = days.find((d) => d.day_index === dayIndex) ?? days[todayIdx];
-    ```
-  - Keep the rest of the session logic unchanged.
+What you need to provide or decide
+1. Apple Developer Program enrollment (or confirm you already have it).
+2. Desired bundle identifier if `com.strv.coach` is not acceptable.
+3. Whether you want Firebase Cloud Messaging for push, or a different provider (OneSignal, etc.).
+4. A 1024×1024 app icon in PNG format without transparency, plus a splash-screen background image or solid color.
+5. Privacy policy and support URLs for App Store Connect.
 
-- **Navigation update**
-  - Add `{ to: "/plan", label: "Plan", icon: ClipboardList }` to `AppShell.tsx` items.
-  - Wrap bottom nav items in a scrollable container: `overflow-x-auto` with `scrollbar-hide` (or `no-scrollbar`), `justify-start` on mobile, `justify-around` on larger screens.
-  - Ensure the active tab is clearly visible and tappable.
-
-- **No database migrations** are required; this feature uses existing `training_programs`, `program_days`, and `program_exercises` tables.
-
-## Design notes
-- Keep the dark, minimal STRV aesthetic.
-- Cards for each day, clear muscle-group chips, large “Start workout” buttons.
-- Rest days shown as muted cards so the weekly rhythm is obvious.
-- No animations beyond the existing pulse/transition patterns.
-
-## After implementation
-- Run the build and type-check.
-- Verify the `/plan` route renders the active program.
-- Tap a day’s “Start workout” and confirm `/workout?dayIndex=X` loads the correct day’s exercises.
+Out of scope (can be added later)
+- App Store Optimization (ASO) copywriting and keyword strategy.
+- Offline mode / local SQLite caching beyond Capacitor's Preferences.
+- Native Apple Watch or iPad-specific layouts.
+- In-app purchases / subscriptions through Apple.

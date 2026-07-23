@@ -19,7 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className={cn("mx-auto max-w-2xl px-4 pt-6", hideNav ? "pb-6" : "pb-28")}>
+      <main className={cn("mx-auto max-w-2xl px-4 pt-[max(1.5rem,env(safe-area-inset-top))]", hideNav ? "pb-6" : "pb-[calc(7rem+env(safe-area-inset-bottom))]")}>
         {children}
       </main>
       {!hideNav && <BottomNav pathname={location.pathname} />}
@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function BottomNav({ pathname }: { pathname: string }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur-md">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => {
           const Icon = item.icon;
