@@ -47,6 +47,9 @@ function Dashboard() {
         navigate({ to: "/onboarding" });
         return;
       }
+      const pref = ((profile.data as { unit_pref?: Unit } | null)?.unit_pref) ?? getCachedUnit();
+      setUnit(pref);
+      setCachedUnit(pref);
 
       const todayIdx = ((new Date().getDay() + 6) % 7);
       const days = (program.data?.program_days ?? []) as Array<{ id: string; day_index: number; name: string; muscle_groups: string[]; program_exercises: { count: number }[] }>;
