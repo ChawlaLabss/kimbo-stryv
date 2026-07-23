@@ -35,7 +35,7 @@ function Dashboard() {
 
       const today = new Date().toISOString().slice(0, 10);
       const [profile, onb, program, sessions, meas, daily] = await Promise.all([
-        supabase.from("profiles").select("display_name").eq("id", uid).maybeSingle(),
+        supabase.from("profiles").select("display_name, unit_pref").eq("id", uid).maybeSingle(),
         supabase.from("onboarding_responses").select("completed, days_per_week, weight_kg").eq("user_id", uid).maybeSingle(),
         supabase.from("training_programs").select("*, program_days(*, program_exercises(count))").eq("user_id", uid).eq("active", true).maybeSingle(),
         supabase.from("workout_sessions").select("id, date, completed").eq("user_id", uid).eq("completed", true).gte("date", weekStart()),
