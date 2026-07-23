@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Timer, Check, AlertTriangle, RefreshCcw, Plus, ChevronLeft, ChevronRight, PlayCircle, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { displayToKg, kgToDisplay, getCachedUnit, type Unit } from "@/lib/units";
+import { getFormVideoEmbedUrl, getFormSearchUrl } from "@/lib/exercise-videos";
 
 export const Route = createFileRoute("/_authenticated/workout")({
   component: WorkoutPage,
@@ -52,6 +53,7 @@ function WorkoutPage() {
   const [finishing, setFinishing] = useState(false);
   const [unit, setUnit] = useState<Unit>(getCachedUnit());
   const [fb, setFb] = useState({ open: false, difficulty: 3, energy: 3, performance: 3, soreness: 2 });
+  const [showVideo, setShowVideo] = useState(false);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
