@@ -31,9 +31,9 @@ export const chatWithCoach = createServerFn({ method: "POST" })
       supabase.from("ai_messages").select("role, content").eq("conversation_id", conversationId).order("created_at").limit(20),
       supabase.from("profiles").select("coach_persona").eq("id", userId).maybeSingle(),
       supabase.from("meal_plans").select("daily_calories, protein_g, carbs_g, fat_g, fiber_g, water_ml, goal").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("food_logs").select("date, meal, food_name, calories, protein_g, carbs_g, fat_g").eq("user_id", userId).gte("date", threeDaysAgo).order("date", { ascending: false }),
-      supabase.from("daily_checkins").select("date, weight_kg, mood, fasted, energy, sleep_hours, notes").eq("user_id", userId).gte("date", weekAgo).order("date", { ascending: false }),
-      supabase.from("weekly_checkins").select("week_start, body_weight_kg, meal_accuracy, water_accuracy, steps_avg, hunger, digestion, biggest_win, biggest_challenge, sleep, stress, motivation, energy, soreness").eq("user_id", userId).order("week_start", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("food_logs").select("date, meal_type, name, calories, protein_g, carbs_g, fat_g, servings").eq("user_id", userId).gte("date", threeDaysAgo).order("date", { ascending: false }),
+      supabase.from("daily_checkins").select("date, weight_kg, mood, fasted, note").eq("user_id", userId).gte("date", weekAgo).order("date", { ascending: false }),
+      supabase.from("weekly_checkins").select("week_start, body_weight_kg, meal_accuracy, water_accuracy, steps_completed, hunger, digestion, biggest_win, biggest_challenge, sleep_quality, stress_level, motivation, energy, soreness").eq("user_id", userId).order("week_start", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
     const persona = getPersona((profile.data as { coach_persona?: string } | null)?.coach_persona);
