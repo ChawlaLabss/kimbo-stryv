@@ -136,7 +136,7 @@ function WorkoutPage() {
         const found = rows.find((r) => r.set_index === k);
         return {
           set_index: k,
-          weight: found?.weight?.toString() ?? "",
+          weight: found?.weight != null ? String(kgToDisplay(Number(found.weight), pref) ?? "") : "",
           reps: found?.reps?.toString() ?? "",
           rir: found?.rir?.toString() ?? "",
           is_warmup: found?.is_warmup ?? false,
