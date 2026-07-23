@@ -307,7 +307,7 @@ function WorkoutPage() {
         <div className="mt-4 space-y-2">
           <div className="grid grid-cols-[auto_1fr_1fr_60px_auto] items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
             <span className="w-6 text-center">#</span>
-            <span>Weight</span>
+            <span>Weight ({unit})</span>
             <span>Reps</span>
             <span>RIR</span>
             <span className="w-8" />
