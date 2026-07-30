@@ -28,6 +28,16 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },
+    // Capgo over-the-air updates. The API key is NEVER put here — it lives on
+    // your Mac / CI as the CAPGO_TOKEN env var and is used by the capgo CLI.
+    CapacitorUpdater: {
+      autoUpdate: true,
+      // Wait for the app to call notifyAppReady() before trusting a bundle;
+      // if it never does, Capgo rolls back to the previous working bundle.
+      appReadyTimeout: 10000,
+      responseTimeout: 20,
+      directUpdate: false,
+    },
   },
 };
 
