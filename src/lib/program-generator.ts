@@ -78,37 +78,103 @@ const FULLBODY: GeneratedExercise[] = [
   { name: "Overhead Press", sets: 2, rep_range: "8-10", target_rir: 2, rest_seconds: 90 },
 ];
 
+const ARMS: GeneratedExercise[] = [
+  { name: "Barbell Curl", sets: 4, rep_range: "8-12", target_rir: 1, rest_seconds: 90 },
+  { name: "Incline Dumbbell Curl", sets: 3, rep_range: "10-12", target_rir: 1, rest_seconds: 75 },
+  { name: "Close-Grip Bench Press", sets: 4, rep_range: "6-10", target_rir: 2, rest_seconds: 120 },
+  { name: "Overhead Cable Extension", sets: 3, rep_range: "10-12", target_rir: 1, rest_seconds: 75 },
+  { name: "Hammer Curl", sets: 3, rep_range: "10-15", target_rir: 1, rest_seconds: 60 },
+];
+
+const CHEST: GeneratedExercise[] = [
+  { name: "Barbell Bench Press", sets: 4, rep_range: "6-8", target_rir: 2, rest_seconds: 150 },
+  { name: "Incline Dumbbell Press", sets: 4, rep_range: "8-10", target_rir: 2, rest_seconds: 120 },
+  { name: "Chest Dip", sets: 3, rep_range: "8-12", target_rir: 2, rest_seconds: 90 },
+  { name: "Cable Fly", sets: 3, rep_range: "12-15", target_rir: 1, rest_seconds: 60 },
+];
+
+const BACK: GeneratedExercise[] = [
+  { name: "Pull-Up", sets: 4, rep_range: "6-10", target_rir: 2, rest_seconds: 150 },
+  { name: "Barbell Row", sets: 4, rep_range: "6-8", target_rir: 2, rest_seconds: 150 },
+  { name: "Seated Cable Row", sets: 3, rep_range: "10-12", target_rir: 1, rest_seconds: 90 },
+  { name: "Lat Pulldown", sets: 3, rep_range: "10-12", target_rir: 1, rest_seconds: 75 },
+];
+
+const SHOULDERS: GeneratedExercise[] = [
+  { name: "Overhead Press", sets: 4, rep_range: "6-8", target_rir: 2, rest_seconds: 150 },
+  { name: "Seated Dumbbell Press", sets: 3, rep_range: "8-12", target_rir: 2, rest_seconds: 105 },
+  { name: "Lateral Raise", sets: 4, rep_range: "12-15", target_rir: 1, rest_seconds: 60 },
+  { name: "Face Pull", sets: 3, rep_range: "12-15", target_rir: 1, rest_seconds: 60 },
+];
+
+type DayTemplate = { name: string; muscles: string[]; ex: GeneratedExercise[] };
+
+const T = {
+  fullbody: (i: number): DayTemplate => ({
+    name: `Full Body ${String.fromCharCode(65 + i)}`,
+    muscles: ["Full Body"],
+    ex: FULLBODY,
+  }),
+  upper: { name: "Upper", muscles: ["Chest", "Back", "Shoulders", "Arms"], ex: UPPER } as DayTemplate,
+  lower: { name: "Lower", muscles: ["Quads", "Hamstrings", "Glutes", "Calves"], ex: LOWER } as DayTemplate,
+  push: { name: "Push", muscles: ["Chest", "Shoulders", "Triceps"], ex: PUSH } as DayTemplate,
+  pull: { name: "Pull", muscles: ["Back", "Biceps"], ex: PULL } as DayTemplate,
+  legs: { name: "Legs", muscles: ["Quads", "Hamstrings", "Glutes"], ex: LEGS } as DayTemplate,
+  chest: { name: "Chest", muscles: ["Chest"], ex: CHEST } as DayTemplate,
+  back: { name: "Back", muscles: ["Back"], ex: BACK } as DayTemplate,
+  shoulders: { name: "Shoulders", muscles: ["Shoulders"], ex: SHOULDERS } as DayTemplate,
+  arms: { name: "Arms", muscles: ["Biceps", "Triceps"], ex: ARMS } as DayTemplate,
+};
+
+function normalizeSplit(pref?: string | null): "fullbody" | "upperlower" | "ppl" | "bro" | null {
+  const p = (pref ?? "").toLowerCase().replace(/[\s_-]/g, "");
+  if (!p || p.includes("nopreference")) return null;
+  if (p.includes("full")) return "fullbody";
+  if (p.includes("upper")) return "upperlower";
+  if (p.includes("push") || p === "ppl") return "ppl";
+  if (p.includes("bro")) return "bro";
+  return null;
+}
+
+function buildTemplate(kind: "fullbody" | "upperlower" | "ppl" | "bro", days: number) {
+  if (kind === "fullbody") {
+    return {
+      split: "Full Body",
+      template: Array.from({ length: days }, (_, i) => T.fullbody(i)),
+    };
+  }
+  if (kind === "upperlower") {
+    const cycle = [T.upper, T.lower];
+    return {
+      split: "Upper / Lower",
+      template: Array.from({ length: days }, (_, i) => ({
+        ...cycle[i % 2],
+        name: `${cycle[i % 2].name} ${String.fromCharCode(65 + Math.floor(i / 2))}`,
+      })),
+    };
+  }
+  if (kind === "ppl") {
+    const cycle = [T.push, T.pull, T.legs];
+    return {
+      split: "Push / Pull / Legs",
+      template: Array.from({ length: days }, (_, i) => ({ ...cycle[i % 3] })),
+    };
+  }
+  const cycle = [T.chest, T.back, T.legs, T.shoulders, T.arms, T.fullbody(0)];
+  return {
+    split: "Bro Split",
+    template: Array.from({ length: days }, (_, i) => ({ ...cycle[i % cycle.length] })),
+  };
+}
+
 export function generateProgram(o: OnboardingInput): GeneratedProgram {
   const days = Math.max(2, Math.min(6, o.days_per_week ?? 4));
-  let split: string;
-  let template: { name: string; muscles: string[]; ex: GeneratedExercise[] }[];
+  const pref = normalizeSplit(o.split_preference);
 
-  if (days <= 3) {
-    split = "Full Body";
-    template = [
-      { name: "Full Body A", muscles: ["Full Body"], ex: FULLBODY },
-      { name: "Full Body B", muscles: ["Full Body"], ex: FULLBODY },
-      { name: "Full Body C", muscles: ["Full Body"], ex: FULLBODY },
-    ].slice(0, days);
-  } else if (days === 4) {
-    split = "Upper / Lower";
-    template = [
-      { name: "Upper A", muscles: ["Chest", "Back", "Shoulders", "Arms"], ex: UPPER },
-      { name: "Lower A", muscles: ["Quads", "Hamstrings", "Glutes", "Calves"], ex: LOWER },
-      { name: "Upper B", muscles: ["Chest", "Back", "Shoulders", "Arms"], ex: UPPER },
-      { name: "Lower B", muscles: ["Quads", "Hamstrings", "Glutes", "Calves"], ex: LOWER },
-    ];
-  } else {
-    split = "Push / Pull / Legs";
-    template = [
-      { name: "Push", muscles: ["Chest", "Shoulders", "Triceps"], ex: PUSH },
-      { name: "Pull", muscles: ["Back", "Biceps"], ex: PULL },
-      { name: "Legs", muscles: ["Quads", "Hamstrings", "Glutes"], ex: LEGS },
-      { name: "Push", muscles: ["Chest", "Shoulders", "Triceps"], ex: PUSH },
-      { name: "Pull", muscles: ["Back", "Biceps"], ex: PULL },
-      { name: "Legs", muscles: ["Quads", "Hamstrings", "Glutes"], ex: LEGS },
-    ].slice(0, days);
-  }
+  // Honour the user's chosen split; otherwise pick one that fits their weekly frequency.
+  const kind = pref ?? (days <= 3 ? "fullbody" : days === 4 ? "upperlower" : "ppl");
+  const { split, template } = buildTemplate(kind, days);
+
 
   const generatedDays: GeneratedDay[] = template.map((d, i) => ({
     day_index: i,
